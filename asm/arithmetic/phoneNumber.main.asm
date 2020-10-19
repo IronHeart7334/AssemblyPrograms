@@ -17,7 +17,8 @@
 
 ; general comments
 ; Register Dictionary
-; AX holds the result as it's being calculated
+;     AX holds the result as it's being calculated
+;     BX holds temporary values
 
 ; preprocessor directives
 .586
@@ -30,10 +31,10 @@
 
 ; named memory allocation and initialization
 .DATA
-phone_a   WORD    916d    ; area code of phone number
-phone_b   WORD    205d    ; first 3 digits of phone number
-phone_c   WORD    0468d   ; last 4 digits of phone number
-result  WORD    0h; ; this will store the result of 2(-phone_a + phone_b - 1) + phone_c
+phone_a   WORD     916d ; area code of phone number
+phone_b   WORD     205d ; first 3 digits of phone number
+phone_c   WORD    0465d ; last 4 digits of phone number
+result    WORD       0d ; this will store the result of 2(-phone_a + phone_b - 1) + phone_c
 ; All of these should be interpreted as being signed
 
 ; names of procedures defined in other *.asm files in the project
@@ -42,11 +43,14 @@ result  WORD    0h; ; this will store the result of 2(-phone_a + phone_b - 1) + 
 .CODE
 main	PROC
 	mov AX, phone_b ; AX is now phone_b
-	sub AX, phone_a ; AX is now -phone_a + phone_b
-	dec AX ;          AX is now -phone_a + phone_b - 1
-	add AX, AX ;      AX is now 2(-phone_a + phone_b - 1)
-	add AX, phone_c ; AX is now 2(-phone_a + phone_b - 1) + phone_c
-	mov result, AX ;  result is now 2(-phone_a + phone_b - 1) + phone_c
+	mov BX, phone_a
+	sub AX, BX      ; AX is now -phone_a + phone_b
+	dec AX          ; AX is now -phone_a + phone_b - 1
+	add AX, AX      ; AX is now 2(-phone_a + phone_b - 1)
+	mov BX, phone_c
+	add AX, BX      ; AX is now 2(-phone_a + phone_b - 1) + phone_c
+	mov result, AX  ; result is now 2(-phone_a + phone_b - 1) + phone_c
+
 	mov EAX, 0
 	ret
 main	ENDP
