@@ -8,18 +8,26 @@
 ; preprocessor directives
 .586
 .MODEL FLAT
+
 ; external files to link with
+
 ; stack configuration
 .STACK 4096
+
 ; named memory allocation and initialization
 .DATA
 speedMin BYTE 30d
 speedMax BYTE 50d
-speedAvg BYTE 0d
+speedAvg BYTE  0d
+
 ; names of procedures defined in other *.asm files in the project
+
 ; procedure code
 .CODE
 main	PROC
+    ; could do this one of two ways:
+    ;     1. by using addition like this
+    ;     2. by chaining multiplication (see chainDivide.main.asm)
     mov AH, speedMax
     mov AL, speedMin
     mul AH           ; AX is now xy

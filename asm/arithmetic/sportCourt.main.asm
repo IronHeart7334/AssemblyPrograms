@@ -25,9 +25,9 @@
 ;   as such, I must store all the data as the next size up, a WORD
 
 .DATA
-court_width    WORD    105d ; apparently, "width" is a reserved word
-court_length  WORD    68d
-court_perimeter WORD  0d
+court_width     WORD  105d ; apparently, "width" is a reserved word
+court_length    WORD   68d
+court_perimeter WORD    0d
 
 ; names of procedures defined in other *.asm files in the project
 
@@ -38,14 +38,14 @@ main    PROC
     mov AX, 0d
     ; initialize the last WORD sized part of A to 0.
 
-    add AX, court_width ; AX = court_width
-    add AX, court_width ; AX = 2*court_width
-    add AX, court_length ; AX = 2*court_width + court_length
-    add AX, court_length ; AX = 2*court_width + 2*court_length = the perimeter
+    add AX, court_width     ; AX = court_width
+    add AX, court_width     ; AX = 2*court_width
+    add AX, court_length    ; AX = 2*court_width + court_length
+    add AX, court_length    ; AX = 2*court_width + 2*court_length = the perimeter
 
     mov court_perimeter, AX ; done with calculating, so store the value.
 
-    mov AX, 0
+    mov EAX, 0
     ret
 main    ENDP
 
