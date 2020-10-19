@@ -1,5 +1,5 @@
 ; general comments
-
+; This is the general template that I'm supposed to use for CISP 310 assignments.
 ; preprocessor directives
 .586
 .MODEL FLAT
