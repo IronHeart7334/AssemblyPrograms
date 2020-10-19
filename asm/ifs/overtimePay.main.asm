@@ -34,7 +34,7 @@ main	PROC
 
     doubleCountBeyond40:
         mov AH, weeklyHours
-        sub AH, 40          ; AH now contains weeklyHours - 40 (hours beyond 40)
+        sub AH, 40d         ; AH now contains weeklyHours - 40 (hours beyond 40)
         add AL, AH          ; AL is now weeklyHours + (weeklyHours - 40) = 2(weeklyHours) - 40
                             ; this double-counts hours over 40 hours
         jmp doneComputingHours

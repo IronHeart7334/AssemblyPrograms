@@ -26,12 +26,12 @@ main	PROC
 	mov DX, 1001d
 
     cmp DX, -1234d
-    jle orAccepted ; short circuit evaluates
+    jle orAccepted    ; short circuit evaluates
     cmp DX, 1000d
-    jge orAccepted ; if it doesn't succeed here...
-    jmp notOrAccepted
+    jge orAccepted    ; if it doesn't succeed here...
+    jmp notOrAccepted ; ... go to else block
     orAccepted:
-        mov DX, 0
+        mov DX, 0d
         jmp done
     notOrAccepted:
         jmp done

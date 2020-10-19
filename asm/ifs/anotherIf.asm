@@ -22,9 +22,8 @@
 
 ; named memory allocation and initialization
 .DATA
-count WORD 5d
+count  WORD  5d
 number WORD 15d
-two WORD 2d
 
 ; names of procedures defined in other *.asm files in the project
 
@@ -33,14 +32,15 @@ two WORD 2d
 main	PROC
 
 	mov BX, 400d
-    mov CX, 0
+    mov CX, 0d
 
     cmp BX, 500d
     jb ifBlock
     jmp elseBlock
     ifBlock:
         mov AX, count
-        mul two
+		mov DX, 2d
+        mul DX
         add BX, AX
         jmp done
     elseBlock:
