@@ -21,10 +21,9 @@
 
 ; named memory allocation and initialization
 .DATA
-a_units     WORD    22d    ; https://crc.losrios.edu/academics/programs-and-majors/computer-information-science
-b_galt_pop  WORD    23647d ; https://www.census.gov/quickfacts/galtcitycalifornia
-result      WORD    0      ; 2( -a + b - 1) + 6 = 47254, which fits into 16 bits
-two         WORD    2d
+a_units    WORD    22d ; https://crc.losrios.edu/academics/programs-and-majors/computer-information-science
+b_galt_pop WORD 23647d ; https://www.census.gov/quickfacts/galtcitycalifornia
+result     WORD     0d ; 2( -a + b - 1) + 6 = 47254, which fits into 16 bits
 
 ; names of procedures defined in other *.asm files in the project
 
@@ -35,9 +34,11 @@ main	PROC
 	mov AX, b_galt_pop ; AX is now b
     sub AX, a_units    ; AX is now -a + b
     dec AX             ; AX is now -a + b - 1
-    mul two            ; DX:AX is now 2(-a + b -1)
-    mov result, AX     ; Only need the last WORD of DX:AX, as the result fits there.
-    add result, 6d     ; result is now 2(-a + b - 1) + 6
+	mov DX, 2d
+    mul DX             ; DX:AX is now 2(-a + b -1)
+	                   ; Only need the last WORD of DX:AX, as the result fits there.
+	add AX, 6d         ; AX is now 2(-a + b - 1) + 6
+	mov result, AX
 
 	mov EAX, 0
 	ret
