@@ -3,6 +3,8 @@
 ;   This program computes the integral from a to b of f(x) dx using Riemann Sum estimation using the formula
 ;
 ;   I = ((b - a) / n) * SIGMA from i = 1 to n of (f(a + i(b - a) / n))
+;
+;   It should go without saying, but this program isn't very accurate yet, as the class hasn't covered decimal numbers yet.
 
 ; preprocessor directives
 .586
@@ -21,9 +23,9 @@
 ; BUT since I need to chain multiplication, must store delta x as a BYTE
 ; delta X is (b - a) / n, so in order for the quotient to be a BYTE, so must n.
 ; sigma might be rather large, so store it as a DWORD. I can extend deltaX when I need to multiply the two of them
-a_     WORD   -10d ; can change these 3 values
-b_     WORD  10d ; for this to work, n_ must be smaller than b_ - a_
-n_     BYTE  20d ;
+a_     WORD   0d ; can change these 3 values
+b_     WORD  50d ; for this to work, n_ must be smaller than b_ - a_. For the highest accuracy, b_ - a_ should be evenly divisible by n_
+n_     BYTE  10d ;
 deltaX BYTE   0d
 sigma  DWORD  0d
 
@@ -57,14 +59,15 @@ main	PROC
             imul CL             ; AX is now i * deltaX
             add AX, a_          ; AX is now a + i * deltaX (the height of the current rectangle)
             ; check if AX is negative
-            cmp AX, 0d
-            jl extSignBit
-            jmp doAdd
+            cmp AX, 0d          ; IF AX < 0
+            jl extSignBit       ;    set high bits of EAX to 1 (sort of a cwd that works on EAX instead of DX:AX)
+            jmp doAdd           ; ELSE
+                                ;    just leave high bits of EAX as 0
+                                ; END IF
             extSignBit:
-                mov EDX, 0d
-                mov DX, AX
-                mov EAX, 0FFFF0000h ; set high bits of EAX
-                add EAX, EDX
+                mov DX, AX          ; swap out low bits of EAX so I can change the high bits
+                mov EAX, 0FFFF0000h ; set high bits of EAX to 1
+                mov AX, DX
 
             doAdd:
                 add EBX, EAX        ; add that rectangle's height to the sum
