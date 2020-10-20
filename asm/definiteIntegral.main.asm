@@ -21,9 +21,9 @@
 ; BUT since I need to chain multiplication, must store delta x as a BYTE
 ; delta X is (b - a) / n, so in order for the quotient to be a BYTE, so must n.
 ; sigma might be rather large, so store it as a DWORD. I can extend deltaX when I need to multiply the two of them
-a_     WORD   0d ; can change these 3 values
-b_     WORD  50d ; for this to work, n_ must be smaller than b_ - a_
-n_     BYTE  10d ;
+a_     WORD   -10d ; can change these 3 values
+b_     WORD  10d ; for this to work, n_ must be smaller than b_ - a_
+n_     BYTE  20d ;
 deltaX BYTE   0d
 sigma  DWORD  0d
 
@@ -56,15 +56,25 @@ main	PROC
             mov AL, deltaX
             imul CL             ; AX is now i * deltaX
             add AX, a_          ; AX is now a + i * deltaX (the height of the current rectangle)
-            add EBX, EAX        ; add that rectangle's height to the sum
-            inc CL              ; remember to increment i!
-            jmp checkSigmaRange
+            ; check if AX is negative
+            cmp AX, 0d
+            jl extSignBit
+            jmp doAdd
+            extSignBit:
+                mov EDX, 0d
+                mov DX, AX
+                mov EAX, 0FFFF0000h ; set high bits of EAX
+                add EAX, EDX
+
+            doAdd:
+                add EBX, EAX        ; add that rectangle's height to the sum
+                inc CL              ; remember to increment i!
+                jmp checkSigmaRange
         doneLooping:
             mov sigma, EBX
 
     multiplyTogether:
         ; multiply the total heights of rectangles by the widths
-        mov EAX, 0d
         mov AL, deltaX
         cbw ; extends AL to AX
 
