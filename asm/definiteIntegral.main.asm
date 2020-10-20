@@ -1,6 +1,6 @@
 ; general comments
 ;   This is a program I made for myself to practice just about everything I've learned in CISP 310 up to this point.
-;   This program computes the integral from a to b of f(x) dx using rectangular estimation using the formula
+;   This program computes the integral from a to b of f(x) dx using Riemann Sum estimation using the formula
 ;
 ;   I = ((b - a) / n) * SIGMA from i = 1 to n of (f(a + i(b - a) / n))
 
@@ -17,14 +17,14 @@
 .DATA
 ; everything must be signed
 ; delta X will be multiplied by sigma, so that limits it to at most a DWORD so the product can fit in EDX:EAX
-; BUT it will also be used in f(x), so f(x) will need to manage its size carefully
-; delta X is (b - a) / n, so in order for the quotient to be a DWORD, so must n. I can use cdq to extend b - a to a quadword for division
-deltaX DWORD  0d
-
-a_     DWORD  0d ; can change these 3 values
-b_     DWORD 50d ; for this to work, n_ must be smaller than b_ - a_
-n_     DWORD 10d ;
-
+; BUT it will also be used in f(x) for i * deltaX, so that must also be a DWORD for when multiplying together, so deltaX must be stored as a WORD
+; BUT since I need to chain multiplication, must store delta x as a BYTE
+; delta X is (b - a) / n, so in order for the quotient to be a BYTE, so must n.
+; sigma might be rather large, so store it as a DWORD. I can extend deltaX when I need to multiply the two of them
+a_     WORD   0d ; can change these 3 values
+b_     WORD  50d ; for this to work, n_ must be smaller than b_ - a_
+n_     BYTE  10d ;
+deltaX BYTE   0d
 sigma  DWORD  0d
 
 ; names of procedures defined in other *.asm files in the project
@@ -34,38 +34,40 @@ sigma  DWORD  0d
 main	PROC
 
 	computeDeltaX:
-        mov EBX, a_
-        mov EAX, b_
-        sub EAX, EBX    ; EAX is now b - a
-        mov ECX, n_
-        cdq             ; EDX:EAX is now b - a
-        idiv ECX        ; stores the remainder of EDX:EAX / ECX in EAX (b - a) / n
-        mov deltaX, EAX ; Done computing deltaX
+        mov BX, a_
+        mov AX, b_
+        sub AX, BX    ; AX is now b - a
+        mov CL, n_
+        idiv CL        ; stores the remainder of AX / CL in AL ((b - a) / n)
+        mov deltaX, AL ; Done computing deltaX
 
     computeSigma:
-        ; set up the for loop
+                            ; set up the for loop
         mov EBX, 0d         ; store result in EBX
-        mov ECX, 1d         ; FOR i from 1 to n
+        mov CL, 1d          ; FOR i from 1 to n (inclusive of end points)
         checkSigmaRange:
-            cmp ECX, n_
+            cmp CL, n_
             jle addNextTerm
             jmp doneLooping
         addNextTerm:
-            ; to make this easier, f(x) = x to avoid having to do much multiplication
-            ; store f(x) in EAX as I'm processing it
-            mov EAX, deltaX
-            imul ECX     ; EDX:EAX is now i * deltaX
-            ; I can't move the result out of EDX using my current set of commands, so I'll just have to ignore it
-            add EAX, a_  ; EAX is now a + i * deltaX (the height of the current rectangle)
-            add EBX, EAX ; add that rectangle's height to the sum
-            inc ECX      ; remember to increment i!
+                                ; to make this easier, f(x) = x to avoid having to do much multiplication
+                                ; store f(x) in AX as I'm processing it
+            mov EAX, 0d
+            mov AL, deltaX
+            imul CL             ; AX is now i * deltaX
+            add AX, a_          ; AX is now a + i * deltaX (the height of the current rectangle)
+            add EBX, EAX        ; add that rectangle's height to the sum
+            inc CL              ; remember to increment i!
             jmp checkSigmaRange
         doneLooping:
             mov sigma, EBX
 
     multiplyTogether:
         ; multiply the total heights of rectangles by the widths
-        mov EAX, deltaX
+        mov EAX, 0d
+        mov AL, deltaX
+        cbw ; extends AL to AX
+
         mov EDX, sigma
         imul EDX        ; EDX:EAX is now the integral
 
