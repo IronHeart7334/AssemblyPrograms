@@ -13,8 +13,8 @@
 ; named memory allocation and initialization
 .DATA
 list      DWORD   25d, 32d, 888d, 12d, 6d
-length    BYTE     5d
-searchFor DWORD 1000d
+length_    BYTE     5d
+searchFor DWORD 888d
 
 ; names of procedures defined in other *.asm files in the project
 
@@ -22,17 +22,17 @@ searchFor DWORD 1000d
 .CODE
 main	PROC
     lea EBX, list
-    mov CL, 0d
+    mov ECX, 0d
     mov AL, 0d
 
     checkLoopCondition:
         cmp AL, 1d
         je doneSearching ; break out if found already
-        cmp CL, length
+        cmp CL, length_
         jae doneSearching ; break out if I've searched all elements
         jmp loopBody
     loopBody:
-        mov EDX, DWORD PTR [EBX + 4 * CL]
+        mov EDX, DWORD PTR [EBX + 4 * ECX]
         cmp EDX, searchFor ; IF (current element is searchFor) { set AL to 1 }
         je found
         jmp notFound

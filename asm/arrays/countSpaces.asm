@@ -16,7 +16,7 @@
 
 ; named memory allocation and initialization
 .DATA
-cString BYTE "Hello world!", 0
+cString BYTE "Hello World!", 0
 
 ; names of procedures defined in other *.asm files in the project
 
@@ -25,16 +25,16 @@ cString BYTE "Hello world!", 0
 main	PROC
     mov DL, 0d ; number of spaces
     lea EBX, cString
-    mov CL, 0d
+    mov ECX, 0d
 
     checkForNullTerminator:
-        mov AL, BYTE PTR [EBX + 1*CL]
+        mov AL, BYTE PTR [EBX + 1*ECX]
         cmp AL, 0d
         je itsNullTerminator
         jmp nextChar
     nextChar:
-        mov AL, BYTE PTR [EBX + 1*CL]
-        cmp AL, ' ' ; is this how I check for spaces?
+        mov AL, BYTE PTR [EBX + 1*ECX]
+        cmp AL, " " ; oddly enough, characters are stored using double quotes
         je itsASpace
         jmp notASpace
         itsASpace:

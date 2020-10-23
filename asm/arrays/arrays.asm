@@ -17,7 +17,7 @@
 ; named memory allocation and initialization
 .DATA
 list   WORD 3d, 1d, 4d, 1d, 5d, 9d, 2d, 6d, 5d, 3d
-length BYTE 10d
+length_ BYTE 10d
 
 ; names of procedures defined in other *.asm files in the project
 
@@ -27,18 +27,19 @@ main	PROC
 
     lea EBX, list        ; EBX = &list, in this case it gets the address of the first element
 
-    mov CL, 0d           ; FOR (int i = 0; ...
+    mov ECX, 0d           ; FOR (int i = 0; ...
 	checkLoopCondition:
-        cmp CL, length
+        cmp CL, length_
         jae doneWithLoop ; ... i < list.length; ...
         jmp loopBody
     loopBody:
-        mov AX, WORD PTR [EBX + 2 * CL] ; AX = (WORD)(*(EBX + 2 * CL))
-        inc CL           ; ... i++)
+        mov AX, WORD PTR [EBX + 2 * ECX] ; AX = (WORD)(*(EBX + 2 * CL))
+        ; Need to use ECX as the index offset
+        inc ECX           ; ... i++)
         jmp checkLoopCondition
     doneWithLoop:
         ; done
-    
+
 	mov EAX, 0
 	ret
 main	ENDP
