@@ -42,10 +42,11 @@ main	PROC
 	; set up the fight
 	; AL will hold person1's HP
 	lea EBX, person1Id
-	mov AL, BYTE PTR [EBX + hpOffset] ; will this work?
+	mov ECX, hpOffset
+	mov AL, BYTE PTR [EBX + 1*ECX] ; will this work?
 	; AH will hold person2's HP
 	lea EBX, person2Id
-	mov AH, BYTE PTR [EBX + hpOffset] ; looks kind of like "this->getHp", except "this" is EBX. Hmm...
+	mov AH, BYTE PTR [EBX + 1*ECX] ; looks kind of like "this->getHp", except "this" is EBX. Hmm...
 
 	; fight until someone's out of the game
 	checkIfFightOver:
@@ -58,22 +59,29 @@ main	PROC
 		; player 1's turn
 		; DL will hold offense values
 		lea EBX, person1Id
-		mov DL, BYTE PTR [EBX + offOffset]
+		mov ECX, offOffset
+		mov DL, BYTE PTR [EBX + 1*ECX]
 		sub AH, DL
 		; simultaneous attack from person 2
 		lea EBX, person2Id
-		mov DL, BYTE PTR [EBX + offOffset]
+		mov DL, BYTE PTR [EBX + 1*ECX]
 		sub AL, DL
 		jmp checkIfFightOver
 	fightOver:
 		; I don't know what will happen here.
 		; I'll just test a few things...
 		lea EBX, person1Id
-		mov AL, BYTE PTR [EBX + idOffset]     ; can I get the ID?
-		mov AL, BYTE PTR [EBX + offOffset]    ; ...offense?
-		mov AL, BYTE PTR [EBX + hpOffset]     ; HP
-		mov EAX, DWORD PTR [EBX + typeOffset] ; what happens if I try to read 4 consecutive bytes as a DWORD?
-		mov EAX, DWORD PTR [EBX + longOffset] ; this is a different size than the others... will that cause problems?
+		mov ECX, idOffset
+		mov AL, BYTE PTR [EBX + 1*ECX]     ; can I get the ID?
+		mov ECX, offOffset
+		mov AL, BYTE PTR [EBX + 1*ECX]    ; ...offense?
+		mov ECX, hpOffset
+		mov AL, BYTE PTR [EBX + 1*ECX]     ; HP
+		mov ECX, typeOffset
+		mov EAX, DWORD PTR [EBX + 1*ECX] ; what happens if I try to read 4 consecutive bytes as a DWORD?
+		; It's backwards??? Why thought? Is this just a Visual Studio formatting thing?
+		mov ECX, longOffset
+		mov EAX, DWORD PTR [EBX + 1*ECX] ; this is a different size than the others... will that cause problems?
 
 	mov EAX, 0
 	ret
