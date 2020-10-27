@@ -16,7 +16,7 @@
 
 ; named memory allocation and initialization
 .DATA
-list   WORD 3d, 1d, 4d, 1d, 5d, 9d, 2d, 6d, 5d, 3d
+list    WORD 3d, 1d, 4d, 1d, 5d, 9d, 2d, 6d, 5d, 3d
 length_ BYTE 10d
 
 ; names of procedures defined in other *.asm files in the project
@@ -30,10 +30,12 @@ main	PROC
     mov ECX, 0d           ; FOR (int i = 0; ...
 	checkLoopCondition:
         cmp CL, length_
-        jae doneWithLoop ; ... i < list.length; ...
+        jae doneWithLoop ; ... i < length of list; ...
         jmp loopBody
     loopBody:
-        mov AX, WORD PTR [EBX + 2 * ECX] ; AX = (WORD)(*(EBX + 2 * CL))
+        mov AX, WORD PTR [EBX + 2 * ECX]
+        ; In C, this would be derefferencing the element at (EBX + 2 * ECX)
+        ; then casting to a WORD
         ; Need to use ECX as the index offset
         inc ECX           ; ... i++)
         jmp checkLoopCondition

@@ -12,8 +12,8 @@
 
 ; named memory allocation and initialization
 .DATA
-list      DWORD   25d, 32d, 888d, 12d, 6d
-length_    BYTE     5d
+list      DWORD  25d, 32d, 888d, 12d, 6d
+length_   BYTE    5d
 searchFor DWORD 888d
 
 ; names of procedures defined in other *.asm files in the project
@@ -44,7 +44,6 @@ main	PROC
             jmp checkLoopCondition
     doneSearching:
         ; done
-
 
 	mov EAX, 0
 	ret

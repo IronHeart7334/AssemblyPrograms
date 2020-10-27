@@ -27,24 +27,20 @@ main	PROC
     lea EBX, cString
     mov ECX, 0d
 
-    checkForNullTerminator:
+    grabNextChar: ; stores next char in AL
         mov AL, BYTE PTR [EBX + 1*ECX]
-        cmp AL, 0d
+        cmp AL, 0d ; WHILE current character is not null terminator
         je itsNullTerminator
-        jmp nextChar
-    nextChar:
-        mov AL, BYTE PTR [EBX + 1*ECX]
-        cmp AL, " " ; oddly enough, characters are stored using double quotes
-        je itsASpace
-        jmp notASpace
+        jmp processNextChar
+    processNextChar:
+        cmp AL, " "  ; oddly enough, characters are stored using double quotes
+        je itsASpace ; IF current character is a space
+        jmp incIdx
         itsASpace:
             inc DL
-            jmp nextPartOfLoop
-        notASpace:
-            jmp nextPartOfLoop
-        nextPartOfLoop:
+        incIdx: ; runs regardless of if AL is a space
             inc CL
-            jmp checkForNullTerminator
+        jmp grabNextChar
     itsNullTerminator:
         mov DH, CL ; length of the string is the index of the null terminator
 
