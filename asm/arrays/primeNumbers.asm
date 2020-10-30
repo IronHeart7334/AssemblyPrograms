@@ -31,7 +31,7 @@
 
 ; named memory allocation and initialization
 .DATA
-primeArray    DWORD 100d dup 0 ; not sure if I'm allowed to use dup: check
+primeArray    DWORD 100d dup(0); not sure if I'm allowed to use dup: check
 primeCapacity BYTE  100d       ; max number of primes to find
 primesFound   BYTE    0d
 ; names of procedures defined in other *.asm files in the project
@@ -44,11 +44,11 @@ main	PROC
     mov EBX, 0d         ; temp so I can inc primesFound
     mov ECX, 5d         ; EAX holds potential prime numbers
 
-    mov [EBP + 4*EBX], 2d ; How do I insert into indexes?
+    mov DWORD PTR [EBP + 4*EBX], 2d ; Use this to insert into indeces
     inc EBX
-    mov [EBP + 4*EBX], 3d ; start with 2 and 3
+    mov DWORD PTR [EBP + 4*EBX], 3d ; start with 2 and 3
     inc EBX
-    mov primesFound, EBX
+    mov primesFound, BL
 
     checkIfFoundEnoughPrimes:
         mov AH, primesFound
@@ -60,7 +60,7 @@ main	PROC
         ; check if candidate is prime
         mov EBX, 0d ; current index of primes to check
         doesItFactor:
-            cmp EBX, primesFound
+            cmp BL, primesFound
             jae noItDoesnt
             mov EAX, ECX                ; copy current factor to EAX...
             mov EDX, 0                  ; unsigned, so zero-out EDX instead of cdq
@@ -72,7 +72,7 @@ main	PROC
         noItDoesnt: ; then it must be prime
             mov [EBP + 4*EBX], ECX ; EBX is the first empty slot in the primeArray
             inc EBX
-            mov primesFound, EBX
+            mov primesFound, BL
             jmp callTheNextCandidiate
         yesItDoes: ; can't be prime if it has any factors
             jmp callTheNextCandidiate
