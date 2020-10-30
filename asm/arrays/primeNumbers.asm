@@ -41,13 +41,13 @@ primesFound   BYTE    0d
 main	PROC
     ; need to leave EAX and EDX open for division
     lea EBP, primeArray ; EBP holds the array of prime numbers found
-    mov EBX, 0d         ; temp so I can inc primesFound
-    mov ECX, 5d         ; EAX holds potential prime numbers
+    mov ECX, 0d         ; temp so I can inc primesFound
+    mov EBX, 5d         ; EBX holds potential prime numbers
 
-    mov DWORD PTR [EBP + 4*EBX], 2d ; Use this to insert into indeces
-    inc EBX
-    mov DWORD PTR [EBP + 4*EBX], 3d ; start with 2 and 3
-    inc EBX
+    mov DWORD PTR [EBP + 4*ECX], 2d ; Use this to insert into indeces
+    inc ECX
+    mov DWORD PTR [EBP + 4*ECX], 3d ; start with 2 and 3
+    inc ECX
     mov primesFound, BL
 
     checkIfFoundEnoughPrimes:
@@ -58,27 +58,27 @@ main	PROC
         jmp doneFindingPrimes
     findNextPrime:
         ; check if candidate is prime
-        mov EBX, 0d ; current index of primes to check
+        mov ECX, 0d ; current index of primes to check
         doesItFactor:
             cmp BL, primesFound
             jae noItDoesnt
-            mov EAX, ECX                ; copy current factor to EAX...
+            mov EAX, EBX                ; copy current factor to EAX...
             mov EDX, 0                  ; unsigned, so zero-out EDX instead of cdq
-            div DWORD PTR [EBP + 4*EBX] ; divide by primeArray[EBX]
+            div DWORD PTR [EBP + 4*ECX] ; divide by primeArray[ECX]
             cmp EDX, 0                  ; IF remainder is 0
             je yesItDoes
-            inc EBX
+            inc ECX
             jmp doesItFactor
         noItDoesnt: ; then it must be prime
-            mov [EBP + 4*EBX], ECX ; EBX is the first empty slot in the primeArray
-            inc EBX
+            mov [EBP + 4*ECX], EBX ; ECX is the first empty slot in the primeArray
+            inc ECX
             mov primesFound, BL
             jmp callTheNextCandidiate
         yesItDoes: ; can't be prime if it has any factors
             jmp callTheNextCandidiate
 
         callTheNextCandidiate:
-            add ECX, 2d ; next candidate
+            add EBX, 2d ; next candidate
             jmp checkIfFoundEnoughPrimes
     doneFindingPrimes:
         ; done
