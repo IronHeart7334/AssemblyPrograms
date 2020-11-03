@@ -19,7 +19,15 @@
 ;           end if
 ;           add 2 to candidate
 ;       end while
-
+;
+; Register Dictionary:
+;   - EBP holds the address of the prime numbers found array
+;   - EAX holds the quotient of dividing prime candidates by prime numbers
+;   - AL temporarily holds the maximum number of primes to find
+;   - EBX holds candidate prime numbers
+;   - BL temporarily holds the number of primes numbers found
+;   - ECX holds doubleword offsets from the beginning of the prime number array (indeces)
+;   - EDX holds the remainder after dividing prime candidates by prime numbers
 ; preprocessor directives
 .586
 .MODEL FLAT
@@ -38,49 +46,49 @@ primesFound   BYTE    0d
 
 ; procedure code
 .CODE
-main	PROC
-    ; need to leave EAX and EDX open for division
-    lea EBP, primeArray ; EBP holds the array of prime numbers found
-    mov ECX, 0d         ; temp so I can inc primesFound
-    mov EBX, 5d         ; EBX holds potential prime numbers
-
-    mov DWORD PTR [EBP + 4*ECX], 2d ; Use this to insert into indeces
-    inc ECX
-    mov DWORD PTR [EBP + 4*ECX], 3d ; start with 2 and 3
-    inc ECX
-    mov primesFound, BL
-
-    checkIfFoundEnoughPrimes:
-        mov AH, primesFound
-        mov AL, primeCapacity
-        cmp AH, AL ; WHILE primesFound < primeCapacity
-        jb findNextPrime
-        jmp doneFindingPrimes
-    findNextPrime:
-        ; check if candidate is prime
-        mov ECX, 0d ; current index of primes to check
-        doesItFactor:
-            cmp BL, primesFound
-            jae noItDoesnt
-            mov EAX, EBX                ; copy current factor to EAX...
-            mov EDX, 0                  ; unsigned, so zero-out EDX instead of cdq
-            div DWORD PTR [EBP + 4*ECX] ; divide by primeArray[ECX]
-            cmp EDX, 0                  ; IF remainder is 0
-            je yesItDoes
-            inc ECX
-            jmp doesItFactor
-        noItDoesnt: ; then it must be prime
-            mov [EBP + 4*ECX], EBX ; ECX is the first empty slot in the primeArray
-            inc ECX
-            mov primesFound, BL
-            jmp callTheNextCandidiate
-        yesItDoes: ; can't be prime if it has any factors
-            jmp callTheNextCandidiate
-
-        callTheNextCandidiate:
-            add EBX, 2d ; next candidate
-            jmp checkIfFoundEnoughPrimes
-    doneFindingPrimes:
+main	PROC                                               ; Psuedocode over here
+    ; need to leave EAX and EDX open for division          ;
+    lea EBP, primeArray                                    ;
+    mov ECX, 0d ; temp so I can inc primesFound            ;
+    mov EBX, 5d                                            ; candidate := 5
+    mov DWORD PTR [EBP + 4*ECX], 2d                        ; prime[0] := 2
+    inc ECX                                                ;
+    mov DWORD PTR [EBP + 4*ECX], 3d                        ; prime[1] := 3
+    inc ECX                                                ;
+    mov primesFound, CL                                    ; primeCount := 2
+    checkIfFoundEnoughPrimes:                              ;
+        mov AH, primesFound                                ;
+        mov AL, primeCapacity                              ;
+        cmp AH, AL                                         ; while (primeCount < 100)
+        jb checkIfPrime                                    ;
+        jmp doneFindingPrimes                              ;
+    checkIfPrime: ; check if the current candidate is prime;
+        mov ECX, 0d                                        ;     index := 0
+        doesItFactor:                                      ;     while((index < primeCount) and prime[index] does not evenly divide candidate)
+            cmp CL, primesFound                            ;
+            jae doneCheckingIfItFactors                    ;
+            mov EAX, EBX                                   ;
+            mov EDX, 0                                     ;
+            ; unsigned, so zero-out EDX instead of cdq     ;
+            div DWORD PTR [EBP + 4*ECX]                    ;
+            cmp EDX, 0                                     ;
+            ; if remainder is 0,                           ;
+            ; prime[index] evenly divides the candidate    ;
+            je doneCheckingIfItFactors                     ;
+            inc ECX                                        ;         add 1 to index
+            jmp doesItFactor                               ;     end while
+        doneCheckingIfItFactors:                           ;
+            cmp ECX, primesFound                           ;     if(index == primeCount) then
+            je foundNewPrime                               ;
+            jmp callTheNextCandidiate                      ;
+        foundNewPrime:                                     ;
+            mov [EBP + 4*ECX], EBX                         ;         prime[primeCount] := candidate
+            inc ECX                                        ;         add 1 to primeCount
+            mov primesFound, CL                            ;     end if
+        callTheNextCandidiate:                             ;
+            add EBX, 2d                                    ;     add 2 to candidate
+            jmp checkIfFoundEnoughPrimes                   ;
+    doneFindingPrimes:                                     ; end while
         ; done
 
 	mov EAX, 0
