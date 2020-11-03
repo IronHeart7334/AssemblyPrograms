@@ -78,7 +78,7 @@ main	PROC                                               ; Psuedocode over here
             inc ECX                                        ;         add 1 to index
             jmp doesItFactor                               ;     end while
         doneCheckingIfItFactors:                           ;
-            cmp ECX, primesFound                           ;     if(index == primeCount) then
+            cmp CL, primesFound                            ;     if(index == primeCount) then
             je foundNewPrime                               ;
             jmp callTheNextCandidiate                      ;
         foundNewPrime:                                     ;
