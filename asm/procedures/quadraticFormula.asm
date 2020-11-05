@@ -14,9 +14,10 @@
 
 ; named memory allocation and initialization
 .DATA
-_a DWORD	 2d
-_b DWORD -3d
-_c DWORD  5d
+_a DWORD 2d
+_b DWORD 5d
+_c DWORD 3d
+; discriminant should be 1d
 
 ; names of procedures defined in other *.asm files in the project
 
@@ -24,30 +25,22 @@ _c DWORD  5d
 .CODE
 main	PROC
 
-    ;push EBP ; set up stack frame
-    ;mov EBP, ESP ; EBP now points to the address of the EBP I just pushed (the bottom of the stack frame)
+    push EBP ; set up stack frame
+    mov EBP, ESP ; EBP now points to the address of the EBP I just pushed (the bottom of the stack frame)
 
-    mov EAX, _c
-    ;cwd ; extend sign bit to fill 32 bits
+    mov EAX, _c ; push arguments in reverse order
+    push EAX
+    mov EAX, _b
+    push EAX
+    mov EAX, _a
     push EAX
 
-    mov EAX, _b
-    ;cwd
-    push AX
-
-    mov EAX, _a
-    ;cwd
-    push AX
-
-    push EBP
-    mov EBP, ESP
-
     call discriminant
-    pop EBP
+
     pop EAX
     pop EAX
     pop EAX
-    ;pop EBP ; pop old EBP back into EBP
+    pop EBP ; pop old EBP back into EBP
 
 	mov EAX, 0
 	ret
@@ -56,14 +49,22 @@ main	ENDP
 
 
 discriminant PROC
+    push EBX
+    push EDX
+    pushfd ; save old values
+
     mov EAX, 4d
-    imul DWORD PTR [EBP + 4*3]; _a is located 3 frames above EBP
-    imul DWORD PTR [EBP + 4*1]; EAX is now 4ac
+    imul DWORD PTR [EBP - 4*3]; _a is located 3 frames above EBP
+    imul DWORD PTR [EBP - 4*1]; EAX is now 4ac
     mov EBX, EAX ; move 4ac into EBX
 
-    mov EAX, DWORD PTR [EBP + 4*2]; _b is located 2 frames above EBP
+    mov EAX, DWORD PTR [EBP - 4*2]; _b is located 2 frames above EBP
     imul EAX ; b^2 is now stored in EDX:EAX, but only takes up the lower half
     sub EAX, EBX ; EAX is now b^2 - 4ac
+
+    popfd
+    pop EDX
+    pop EBX
 
     ret
 discriminant ENDP
