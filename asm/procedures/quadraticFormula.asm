@@ -14,9 +14,9 @@
 
 ; named memory allocation and initialization
 .DATA
-_a WORD	 2d
-_b WORD -3d
-_c WORD  5d
+_a DWORD	 2d
+_b DWORD -3d
+_c DWORD  5d
 
 ; names of procedures defined in other *.asm files in the project
 
@@ -24,26 +24,30 @@ _c WORD  5d
 .CODE
 main	PROC
 
-    push EBP ; set up stack frame
-    mov EBP, ESP ; EBP now points to the address of the EBP I just pushed (the bottom of the stack frame)
+    ;push EBP ; set up stack frame
+    ;mov EBP, ESP ; EBP now points to the address of the EBP I just pushed (the bottom of the stack frame)
 
-    mov AX, _c
-    cwd ; extend sign bit to fill 32 bits
+    mov EAX, _c
+    ;cwd ; extend sign bit to fill 32 bits
     push EAX
 
-    mov AX, _b
-    cwd
+    mov EAX, _b
+    ;cwd
     push AX
 
-    mov AX, _a
-    cwd
+    mov EAX, _a
+    ;cwd
     push AX
+
+    push EBP
+    mov EBP, ESP
 
     call discriminant
+    pop EBP
     pop EAX
     pop EAX
     pop EAX
-    pop EBP ; pop old EBP back into EBP
+    ;pop EBP ; pop old EBP back into EBP
 
 	mov EAX, 0
 	ret
