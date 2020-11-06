@@ -24,8 +24,6 @@ _c DWORD 3d
 ; procedure code
 .CODE
 main	PROC
-
-    
     mov EAX, _c ; push arguments in reverse order
     push EAX
     mov EAX, _b
@@ -38,7 +36,7 @@ main	PROC
     pop EAX
     pop EAX
     pop EAX
-    
+
 	mov EAX, 0
 	ret
 main	ENDP

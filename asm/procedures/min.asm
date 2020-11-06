@@ -24,8 +24,6 @@ _b DWORD  16d
 ; procedure code
 .CODE
 main	PROC
-    ; todo: update documentation for this and quadraticFormula
-
     mov EAX, _b
     push EAX     ; push parameters in reverse order
 
@@ -37,7 +35,7 @@ main	PROC
     ; ESP -> [return address]
     ;        [FF FF FF E0 h] (_a)
     ;        [00 00 00 10 h] (_b)
-    ; EBP -> [old EBP]
+    ;        [rubbish]
 
     pop EAX ; trash the parameters I passed
     pop EAX
@@ -51,11 +49,20 @@ main	ENDP
 min2 PROC
     push EBP     ; set up stack frame
     mov EBP, ESP ; EBP is stable, so use it to store the address of old EBP's stack address
+    ; Now the stack looks like this:
+    ; ESP -> EBP -> [old EBP]
+    ;               [return address]
+    ;               [FF FF FF E0 h] (_a)
+    ;               [00 00 00 10 h] (_b)
+    ;               [rubbish]
+    ; ESP can move around, so I only care about addresses relative to EBP
 
-    pushfd ; save EFLAGS for later
+    ; cdecl says to save all register values except for EAX (the return value)
+    pushfd
     push EBX
-    push EDX ; save these two registers
+    push EDX
 
+    ; now we get to the actual procedure
     mov EBX, DWORD PTR [EBP + 4*2] ; _a is two frames below EBP, as the return address is one below
     mov EDX, DWORD PTR [EBP + 4*3]
     cmp EBX, EDX
@@ -65,11 +72,11 @@ min2 PROC
     EBXIsSmaller:
         mov EAX, EBX
         ; fall through to cleanup
-    cleanup:
+    cleanup: ; cdecl says to restore everything (except EAX) back to the way it was
         pop EDX
         pop EBX
-        popfd ; restore EFLAGS
-        pop EBP ; restore EBP
+        popfd
+        pop EBP ; get rid of stack frame
     ret
 min2 ENDP
 
