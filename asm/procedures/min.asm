@@ -24,9 +24,7 @@ _b DWORD  16d
 ; procedure code
 .CODE
 main	PROC
-
-	push EBP     ; set up stack frame
-    mov EBP, ESP ; EBP is stable, so use it to store the address of old EBP's stack address
+    ; todo: update documentation for this and quadraticFormula
 
     mov EAX, _b
     push EAX     ; push parameters in reverse order
@@ -43,7 +41,6 @@ main	PROC
 
     pop EAX ; trash the parameters I passed
     pop EAX
-    pop EBP ; restore EBP
 
 	mov EAX, 0
 	ret
@@ -52,12 +49,15 @@ main	ENDP
 ; Returns the smaller value contained in the 2 stack locations above EBP
 ; the smaller is returned in EAX
 min2 PROC
+    push EBP     ; set up stack frame
+    mov EBP, ESP ; EBP is stable, so use it to store the address of old EBP's stack address
+
     pushfd ; save EFLAGS for later
     push EBX
     push EDX ; save these two registers
 
-    mov EBX, DWORD PTR [EBP - 4*2] ; _a is two frames above EBP
-    mov EDX, DWORD PTR [EBP - 4*1]
+    mov EBX, DWORD PTR [EBP + 4*2] ; _a is two frames below EBP, as the return address is one below
+    mov EDX, DWORD PTR [EBP + 4*3]
     cmp EBX, EDX
     jl EBXIsSmaller ; IF EBX > EDX go to EBXIsSmaller
     mov EAX, EDX ; if EBX is not smaller, either they are the same, or EDX is smaller
@@ -69,6 +69,7 @@ min2 PROC
         pop EDX
         pop EBX
         popfd ; restore EFLAGS
+        pop EBP ; restore EBP
     ret
 min2 ENDP
 

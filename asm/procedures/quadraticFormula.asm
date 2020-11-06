@@ -25,9 +25,7 @@ _c DWORD 3d
 .CODE
 main	PROC
 
-    push EBP ; set up stack frame
-    mov EBP, ESP ; EBP now points to the address of the EBP I just pushed (the bottom of the stack frame)
-
+    
     mov EAX, _c ; push arguments in reverse order
     push EAX
     mov EAX, _b
@@ -40,8 +38,7 @@ main	PROC
     pop EAX
     pop EAX
     pop EAX
-    pop EBP ; pop old EBP back into EBP
-
+    
 	mov EAX, 0
 	ret
 main	ENDP
@@ -49,22 +46,27 @@ main	ENDP
 
 
 discriminant PROC
+    push EBP ; set up stack frame
+    mov EBP, ESP ; EBP now points to the address of the EBP I just pushed (the bottom of the stack frame)
+
     push EBX
     push EDX
     pushfd ; save old values
 
     mov EAX, 4d
-    imul DWORD PTR [EBP - 4*3]; _a is located 3 frames above EBP
-    imul DWORD PTR [EBP - 4*1]; EAX is now 4ac
+    imul DWORD PTR [EBP + 4*2]; _a is located 2 frames below EBP
+    imul DWORD PTR [EBP + 4*4]; EAX is now 4ac
     mov EBX, EAX ; move 4ac into EBX
 
-    mov EAX, DWORD PTR [EBP - 4*2]; _b is located 2 frames above EBP
+    mov EAX, DWORD PTR [EBP + 4*3]; _b is located 3 frames below EBP
     imul EAX ; b^2 is now stored in EDX:EAX, but only takes up the lower half
     sub EAX, EBX ; EAX is now b^2 - 4ac
 
     popfd
     pop EDX
     pop EBX
+
+    pop EBP ; pop old EBP back into EBP
 
     ret
 discriminant ENDP
