@@ -19,7 +19,7 @@ param2 DWORD 2d
 
 ; procedure code
 .CODE
-main	PROC
+main PROC
     ; Step 1: before calling the procedure, the caller must push parameters in reverse order
     mov EAX, param2
     push EAX
@@ -27,15 +27,15 @@ main	PROC
     push EAX
 
     ; Step 2: call the procedure
-    call myProc    ; remember: this pushes the address of this to the stack
+    call myProc ; remember: this pushes the address of this to the stack
 
     ; Step 7: trash the parameters I passed
     pop EAX
     pop EAX
 
-	mov EAX, 0
-	ret
-main	ENDP
+    mov EAX, 0
+    ret
+main ENDP
 
 ; cdecl says that a procedure must leave all registers (except for EAX) and the stack as it found them
 ; it returns its value in EAX
@@ -48,12 +48,12 @@ myProc PROC
     ; Step 3: set up a stack frame as a fixed point on the stack
     push EBP     ; set up stack frame
     mov EBP, ESP ; EBP is stable, so use it to store the address of old EBP's stack address
-    ; Now the stack looks like this:
-    ; ESP -> EBP -> [old EBP]
-    ;               [return address]
-    ;               [param1]
-    ;               [param2]
+    ; Now the stack looks like this: (using higher addresses at the top)
     ;               [rubbish]
+    ;               [param2]
+    ;               [param1]
+    ;               [return address]
+    ; ESP -> EBP -> [old EBP]
     ; ESP can move around, so I only care about addresses relative to EBP
 
     ; Step 4: save all register values except for EAX (the return value)
@@ -61,7 +61,7 @@ myProc PROC
     push EBX
 
     ; Step 5: now we get to the actual procedure
-    mov EAX, DWORD PTR [EBP + 4*2] ; first parameter is two frames below EBP, as the return address is one below
+    mov EAX, DWORD PTR [EBP + 4*2] ; first parameter is two frames above EBP, as the return address is one above
     mov EBX, DWORD PTR [EBP + 4*3]
     sub EAX, EBX
 

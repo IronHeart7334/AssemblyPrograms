@@ -52,11 +52,11 @@ discriminant PROC
     pushfd ; save old values
 
     mov EAX, 4d
-    imul DWORD PTR [EBP + 4*2]; _a is located 2 frames below EBP
+    imul DWORD PTR [EBP + 4*2]; _a is located 2 frames above EBP
     imul DWORD PTR [EBP + 4*4]; EAX is now 4ac
     mov EBX, EAX ; move 4ac into EBX
 
-    mov EAX, DWORD PTR [EBP + 4*3]; _b is located 3 frames below EBP
+    mov EAX, DWORD PTR [EBP + 4*3]; _b is located 3 frames above EBP
     imul EAX ; b^2 is now stored in EDX:EAX, but only takes up the lower half
     sub EAX, EBX ; EAX is now b^2 - 4ac
 

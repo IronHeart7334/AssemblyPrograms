@@ -32,10 +32,10 @@ main	PROC
 
     call min2    ; remember: this pushes the address of this to the stack,
     ; so before min2 exits, the stack will look like this:
-    ; ESP -> [return address]
-    ;        [FF FF FF E0 h] (_a)
-    ;        [00 00 00 10 h] (_b)
     ;        [rubbish]
+    ;        [00 00 00 10 h] (_b)
+    ;        [FF FF FF E0 h] (_a)
+    ; ESP -> [return address]
 
     pop EAX ; trash the parameters I passed
     pop EAX
@@ -50,11 +50,11 @@ min2 PROC
     push EBP     ; set up stack frame
     mov EBP, ESP ; EBP is stable, so use it to store the address of old EBP's stack address
     ; Now the stack looks like this:
-    ; ESP -> EBP -> [old EBP]
-    ;               [return address]
-    ;               [FF FF FF E0 h] (_a)
-    ;               [00 00 00 10 h] (_b)
     ;               [rubbish]
+    ;               [00 00 00 10 h] (_b)
+    ;               [FF FF FF E0 h] (_a)
+    ;               [return address]
+    ; ESP -> EBP -> [old EBP]
     ; ESP can move around, so I only care about addresses relative to EBP
 
     ; cdecl says to save all register values except for EAX (the return value)
@@ -63,7 +63,7 @@ min2 PROC
     push EDX
 
     ; now we get to the actual procedure
-    mov EBX, DWORD PTR [EBP + 4*2] ; _a is two frames below EBP, as the return address is one below
+    mov EBX, DWORD PTR [EBP + 4*2] ; _a is two frames above EBP, as the return address is one above
     mov EDX, DWORD PTR [EBP + 4*3]
     cmp EBX, EDX
     jl EBXIsSmaller ; IF EBX > EDX go to EBXIsSmaller
