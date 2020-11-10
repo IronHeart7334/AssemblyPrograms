@@ -18,9 +18,9 @@
 
 ; named memory allocation and initialization
 .DATA
-height BYTE 10d
-length BYTE  5d
-width  BYTE  4d
+_height BYTE 10d
+_length BYTE  5d
+_width  BYTE  4d
 volume DWORD 0d ; 8- and 16-bits are not enough to hold the largest volume (500000d)
 ; volume should be 100d (00 00 00 64 h)
 
@@ -30,11 +30,11 @@ volume DWORD 0d ; 8- and 16-bits are not enough to hold the largest volume (5000
 .CODE
 main PROC
     mov EBX, 0 ; set high bits of B register
-    mov BL, width
+    mov BL, _width
     push EBX ; only allowed to push DWORD registers
-    mov BL, length
+    mov BL, _length
     push EBX
-    mov BL, height
+    mov BL, _height
     push EBX
 
     call triangularPrismVolume
