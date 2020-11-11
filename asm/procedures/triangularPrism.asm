@@ -50,13 +50,13 @@ main ENDP
 ; Register Dictionary:
 ;   - EBP contains the address of this procedure's stack frame
 ;   - EDX will contain the high bits of multiplication
-;   -  BX will temporarily hold the dividend (2d)
-;   - EAX holds the remainder after division
+;   -  BX will temporarily hold the divisor (2d)
+;   - EAX holds the quotient after division
 ;   Note that all of these except EAX are restored by the end of the procedure
 ;
 ; While I could divide by 2 before multiplying a second time,
 ; integer division is not commutative with multiplication,
-; so my answer would be off if the last multiplicand is odd
+; example: (1 * 1 * 2) / 2 = 1, but ((1 * 1) / 2) * 2 = 0
 triangularPrismVolume PROC
     push EBP
     mov EBP, ESP
@@ -85,7 +85,7 @@ triangularPrismVolume PROC
     mul DX; height * length * width is now in DX:AX
     mov BX, 2d
     div BX; need a WORD sized register to use the correct numerator (DX:AX)
-    ; quotient is now in AX, whose high bits are still 0, so just leave it there
+    ; quotient is now in AX, and the high bits of EAX are still 0, so just leave it there as the return value
 
     ; restore everything (except EAX) back to the way it was
     pop EBX
