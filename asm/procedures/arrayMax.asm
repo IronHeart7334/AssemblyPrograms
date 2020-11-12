@@ -76,11 +76,6 @@ arrayMax PROC
             inc ECX
             jmp checkIfNoMore
 
-
-    mov EAX, DWORD PTR [EBP + 4*2] ; first parameter is two frames above EBP, as the return address is one above
-    mov EBX, DWORD PTR [EBP + 4*3]
-    sub EAX, EBX
-
     doReturn:
         ; Step 6: restore everything (except EAX) back to the way it was
         pop EBX
