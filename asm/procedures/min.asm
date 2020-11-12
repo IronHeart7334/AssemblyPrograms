@@ -1,8 +1,12 @@
 ; general comments
 ;   Write a procedure given by the following C prototype:
 ;       int min(int a, int b)
-;   where a and b are unsigned doubleword integers,
+;   where a and b are signed doubleword integers,
 ;   and min returns the smaller of them
+;
+;   Write another procedure with this prototype:
+;       int min4Signed(int a, int b, int c, int d);
+;   which invokes min2
 
 ; preprocessor directives
 .586
@@ -16,28 +20,40 @@
 ; named memory allocation and initialization
 .DATA
 _a DWORD -32d
-_b DWORD  16d
-; should yield -32d in EAX
+_b DWORD 0xFFFFFFFFh
+_c DWORD  16d
+_d DWORD 9999d
+; should yield FF FF FF FF h in EAX
 
 ; names of procedures defined in other *.asm files in the project
 
 ; procedure code
 .CODE
 main	PROC
+    mov EAX, _d
+    push EAX
+
+    mov EAX, _c
+    push EAX
+
     mov EAX, _b
-    push EAX     ; push parameters in reverse order
+    push EAX
 
     mov EAX, _a
     push EAX
 
-    call min2    ; remember: this pushes the address of this to the stack,
+    call min4Signed
     ; so before min2 exits, the stack will look like this:
     ;        [rubbish]
-    ;        [00 00 00 10 h] (_b)
-    ;        [FF FF FF E0 h] (_a)
+    ;        [d]
+    ;        [c]
+    ;        [b]
+    ;        [a]
     ; ESP -> [return address]
 
     pop EAX ; trash the parameters I passed
+    pop EAX
+    pop EAX
     pop EAX
 
 	mov EAX, 0
@@ -51,8 +67,8 @@ min2 PROC
     mov EBP, ESP ; EBP is stable, so use it to store the address of old EBP's stack address
     ; Now the stack looks like this:
     ;               [rubbish]
-    ;               [00 00 00 10 h] (_b)
-    ;               [FF FF FF E0 h] (_a)
+    ;               [b]
+    ;               [a]
     ;               [return address]
     ; ESP -> EBP -> [old EBP]
     ; ESP can move around, so I only care about addresses relative to EBP
@@ -79,5 +95,83 @@ min2 PROC
         pop EBP ; get rid of stack frame
     ret
 min2 ENDP
+
+
+min4Signed PROC
+    push EBP
+    mov EBP, ESP
+    ; STACK
+    ; [...]
+    ; [d]
+    ; [c]
+    ; [b]
+    ; [a]
+    ; [return address]
+    ; [old EBP] <-- EBP <-- ESP
+
+    pushfd
+    push EDX
+
+
+    mov EDX, 0
+    push EDX
+    push EDX ; allocate two DWORDs on the stack
+
+    ; STACK
+    ; [...]
+    ; [d]
+    ; [c]
+    ; [b]
+    ; [a]
+    ; [return address]
+    ; [old EBP] <-- EBP
+    ; [old EFLAGS]
+    ; [old EAX]
+    ; [allocated 1]
+    ; [allocated 2]
+
+    ; Evaluate as a tree:
+    ; a     b c      d
+    ; \    /   \    /
+    ;  min2     min2
+    ;    \        /
+    ;     \      /
+    ;       min2
+
+    ; set up call to min2 of a and b
+    push DWORD PTR [EBP + 4*3] ; b
+    push DWORD PTR [EBP + 4*2] ; a
+    call min2 ; EAX now holds the smaller of a and b
+    mov DWORD PTR [EBP - 4*3], EAX ; save min of a and b in first allocated space
+    pop EDX ; clean up params
+    pop EDX
+
+    ; next, call to min2 of c and d
+    push DWORD PTR [EBP + 4*5] ; d
+    push DWORD PTR [EBP + 4*4] ; c
+    call min2 ; EAX now holds the smaller of c and d
+    mov DWORD PTR [EBP - 4*4], EAX; move into allocated space
+    pop EDX ; clean up params
+    pop EDX
+
+    ; lastly, call min2 on the two results
+    push DWORD PTR [EBP - 4*4] ; min2 of c and d
+    push DWORD PTR [EBP - 4*3] ; min2 of a and b
+    call min2 ; EAX holds return value of this procedure
+    pop EDX
+    pop EDX
+
+    ; get rid of allocated memory
+    pop EDX
+    pop EDX
+
+    ; restore registers
+    pop EDX
+    popfd
+
+    pop EBP
+    ret
+min4Signed ENDP
+
 
 END
