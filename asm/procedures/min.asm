@@ -126,7 +126,7 @@ min4Signed PROC
     ; [return address]
     ; [old EBP] <-- EBP
     ; [old EFLAGS]
-    ; [old EAX]
+    ; [old EDX]
     ; [allocated 1]
     ; [allocated 2]
 
