@@ -20,10 +20,10 @@
 ; named memory allocation and initialization
 .DATA
 _a DWORD -32d
-_b DWORD 0xFFFFFFFFh
+_b DWORD 0FFFFFFFFh
 _c DWORD  16d
 _d DWORD 9999d
-; should yield FF FF FF FF h in EAX
+; should yield FF FF FF E0 h in EAX
 
 ; names of procedures defined in other *.asm files in the project
 

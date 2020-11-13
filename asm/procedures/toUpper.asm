@@ -33,13 +33,6 @@ main PROC
     ret
 main ENDP
 
-; cdecl says that a procedure must leave all registers (except for EAX) and the stack as it found them
-; it returns its value in EAX
-; and is not allowed to access named memory locations
-; this example in c would be
-;   int myProc(int a, int b){
-;       return a - b;
-;   }
 toUpper PROC
     push EBP
     mov EBP, ESP
@@ -55,7 +48,7 @@ toUpper PROC
 
 
 
-    mov EBX, DWORD PTR [EBP + 4*2] ; move the address into EBP
+    mov EBX, DWORD PTR [EBP + 4*2] ; move the address into EBX
     mov ECX, 0 ; use ECX as counter
     mov EDX, 0 ; zero out high bits
     processNextByte: ; WHILE (cString[ECX] != '\0')

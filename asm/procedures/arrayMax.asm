@@ -62,16 +62,17 @@ arrayMax PROC
     ; at least one element
     mov EBX, DWORD PTR [EBP + 4*2] ; array pointer
     mov ECX, 1d ; start by comparing 0th and 1st elements
-    mov EAX, DWORD PTR [EBP] ; dereference first element of the array. It is the current max
+    mov EAX, 0d ; clear high bits
+    mov AL, BYTE PTR [EBX] ; dereference first element of the array. It is the current max
 
     checkIfNoMore: ; WHILE (ECX < array size)
-        cmp ECX, DWORD PTR [EBP + 4*3]
+        cmp ECX, DWORD PTR [EBP + 4*3] ; DWORD for size...
         jge doReturn
-        cmp EAX, DWORD PTR [EBX + 4*ECX] ; current element
+        cmp AL, BYTE PTR [EBX + 1*ECX] ; current element is a BYTE, offset from EBX
         jl foundNewLargest ; current element is larger than current largest
         jmp nextElement
         foundNewLargest:
-            mov EAX, DWORD PTR [EBP + 4*ECX]
+            mov AL, BYTE PTR [EBX + 1*ECX]
         nextElement:
             inc ECX
             jmp checkIfNoMore
