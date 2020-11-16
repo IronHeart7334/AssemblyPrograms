@@ -93,7 +93,22 @@ signedByteTo3Ascii PROC
         cmp DWORD PTR [EBP - 4*7], 3d
         jae doneConverting
 
-        inc DWORD PTR [EBP - 4*5]                    ;    index++;
+        mov EAX, DWORD PTR [EBP - 4*5]
+        mov EDX, DWORD PTR [EBP - 4*6]
+        div DL                                       ;    AL = remainder / tenPow; // grabs digit in that place
+        add AL, 30d                                  ;    convert the int in AL to the ASCII character representation
+        mov BYTE PTR [EBX + 1*DWORD PTR [EBP - 4*7]] ;    move that char into the output. May need to use ECX
+        mov AL, AH
+        mov AH, 0d
+        mov DWORD PTR [EBP - 4*5], AL                ;    update remainder
+
+        mov EAX, DWORD PTR [EBP - 4*6]
+        mov DL, 10d
+        div DL
+        mov AH, 0d                                   ;    integer division, so ignore remainder
+        mov DWORD PTR [EBP - 4*6], EAX               ;    tenPow /= 10;
+
+        inc DWORD PTR [EBP - 4*7]                    ;    index++;
         jmp checkIfDoneConverting
     doneConverting:                                  ; }
         ; done
