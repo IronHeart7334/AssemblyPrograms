@@ -1,7 +1,6 @@
 ; general comments
 ;   Write an assembly program with the following prototype:
 ;       void unsignedIntegerByteToASCII(unsigned integer, char*);
-;   The calling procedure is responsible for allocating a three element byte array.
 ;   Do this conversion with integer division and a loop with powers of 10
 ;   As the last step in your procedure replace leading zeros with spaces
 ;   Be sure to plan out your logic in words.
@@ -85,32 +84,41 @@ signedByteTo3Ascii PROC
 
     ; Step 6: now we get to the actual procedure
     mov EAX, DWORD PTR [EBP + 4*2]
-    mov DWORD PTR [EBP - 4*5], EAX ; int remainder = convertMe;
-    mov EBX, DWORD PTR [EBP + 4*3]                   ; char* destination = toHere;
-    mov DWORD PTR [EBP - 4*6], 100d                  ; int tenPow = 100;
-    mov DWORD PTR [EBP - 4*7], 0d                    ; int index = 0;
+    mov DWORD PTR [EBP - 4*5], EAX ; EBP - 4*5 contains the remainder of the number I'm converting
+    mov EBX, DWORD PTR [EBP + 4*3] ; It looks like I need to do this to dereference twice
+    mov DWORD PTR [EBP - 4*6], 100d                  ; current power of 10
+    mov DWORD PTR [EBP - 4*7], 0d                    ; number of digits processed
 
-    checkIfDoneConverting:                           ; while(index < 3){
+    checkIfDoneConverting:                           ; loop for 3 digits
         cmp DWORD PTR [EBP - 4*7], 3d
         jae doneConverting
 
-        mov EAX, DWORD PTR [EBP - 4*5]
-        mov EDX, DWORD PTR [EBP - 4*6]
-        div DL                                       ;    AL = remainder / tenPow; // grabs digit in that place
-        add AL, 30d                                  ;    convert the int in AL to the ASCII character representation
-        mov BYTE PTR [DWORD PTR [EBP + 4*3]], AL ;    move that char into the output. How do I dereference twice?
-        inc DWORD PTR [EBP + 4*3] ; move to the next byte in output
-        mov AL, AH
-        mov AH, 0d
+        mov EAX, DWORD PTR [EBP - 4*5]               ; dividend is the remainder
+        mov EDX, DWORD PTR [EBP - 4*6]               ; divisor is the current power of 10
+        div DL                                       ; "grabs" the highest digit, and puts it in AL
+        add AL, 30d                                  ; convert the int in AL to the ASCII character representation
+
+        ; This method does not use EBX
+        ;mov BYTE PTR [DWORD PTR [EBP + 4*3]], AL ;    move that char into the output. How do I dereference twice?
+        ;inc DWORD PTR [EBP + 4*3] ; move to the next byte in output
+        ; Like so?
+        ; mov BYTE PTR [[EBP + 4*3]], AL
+        ; inc [EBP + 4*3]
+
+        ; This method uses EBX
+        mov BYTE PTR [EBX]
+        inc EBX ; advance to the next byte in output
+        mov AL, AH ; move the remainder after division over the dividend
+        mov AH, 0d ; high bits of EAX as still 0, so now EAX contains the remainder
         mov DWORD PTR [EBP - 4*5], EAX               ;    update remainder
 
-        mov EAX, DWORD PTR [EBP - 4*6]
+        mov EAX, DWORD PTR [EBP - 4*6] ; now use EAX to hold the power of 10
         mov DL, 10d
         div DL
         mov AH, 0d                                   ;    integer division, so ignore remainder
-        mov DWORD PTR [EBP - 4*6], EAX               ;    tenPow /= 10;
+        mov DWORD PTR [EBP - 4*6], EAX               ;    tenPow /= 10
 
-        inc DWORD PTR [EBP - 4*7]                    ;    index++;
+        inc DWORD PTR [EBP - 4*7]                    ;    index++
         jmp checkIfDoneConverting
     doneConverting:                                  ; }
         ; done
