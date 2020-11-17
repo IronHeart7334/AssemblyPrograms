@@ -115,6 +115,23 @@ signedByteTo3Ascii PROC
     doneConverting:                    ; END WHILE
         ; done
 
+    ; Replace leading zeros with spaces
+    mov DWORD PTR [EBP - 4*7], 0d
+    mov EBX, DWORD PTR [EBP + 4*3] ; back to the start of output
+    checkIfLeadingZero:               ; WHILE (processed less than 3 digits and EBX points to a 0)
+        cmp DWORD PTR [EBP - 4*7], 3d
+        jae doneCheckingForLeadingZero
+        cmp BYTE PTR [EBX], "0"
+        je replaceThatZero
+        jmp doneCheckingForLeadingZero
+        replaceThatZero:
+            mov BYTE PTR [EBX], " "
+            inc EBX
+            inc DWORD PTR [EBP - 4*7]
+            jmp checkIfLeadingZero
+    doneCheckingForLeadingZero:      ; END WHILE
+        ; done
+
     ; Step 7: free allocated storage
     pop EAX
     pop EAX
