@@ -118,8 +118,8 @@ signedByteTo3Ascii PROC
     ; Replace leading zeros with spaces
     mov DWORD PTR [EBP - 4*7], 0d
     mov EBX, DWORD PTR [EBP + 4*3] ; back to the start of output
-    checkIfLeadingZero:               ; WHILE (processed less than 3 digits and EBX points to a 0)
-        cmp DWORD PTR [EBP - 4*7], 3d
+    checkIfLeadingZero:               ; WHILE (processed less than 2 digits and EBX points to a 0)
+        cmp DWORD PTR [EBP - 4*7], 2d ; don't replace a 0 in the one's place
         jae doneCheckingForLeadingZero
         cmp BYTE PTR [EBX], "0"
         je replaceThatZero
