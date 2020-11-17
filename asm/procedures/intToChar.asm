@@ -19,7 +19,7 @@
 
 ; named memory allocation and initialization
 .DATA
-intVal    BYTE 123d
+intVal    BYTE 12d
 byteArray BYTE 0, 0, 0
 
 ; names of procedures defined in other *.asm files in the project
@@ -96,7 +96,7 @@ signedByteTo3Ascii PROC
         mov EAX, DWORD PTR [EBP - 4*5] ;    dividend is the remainder
         mov EDX, DWORD PTR [EBP - 4*6] ;    divisor is the current power of 10
         div DL                         ;    This "grabs" the highest digit, and puts it in AL
-        add AL, 30d                    ;    convert the int in AL to the ASCII character representation
+        add AL, 30h                    ;    convert the int in AL to the ASCII character representation
         mov BYTE PTR [EBX], AL         ;    copy the new ASCII character to the output
         inc EBX                        ;    advance to the next byte in output
                                        ;
