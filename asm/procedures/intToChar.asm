@@ -36,7 +36,7 @@ main PROC
     push EBX
 
     ; Step 2: call the procedure
-    call signedByteTo3Ascii
+    call unsignedByteTo3Ascii
 
     ; Step 9: trash the parameters I passed
     pop EBX
@@ -46,13 +46,13 @@ main PROC
     ret
 main ENDP
 
-; void signedByteTo3Ascii(int convertMe, char* toHere);
+; void unsignedByteTo3Ascii(int convertMe, char* toHere);
 ; Register Dictionary:
 ;   - EBP is used to locate the stack frame
 ;   - EAX is used for division
 ;   - EBX holds a reference to the array parameter
 ;   - EDX is used for the divisor of division
-signedByteTo3Ascii PROC
+unsignedByteTo3Ascii PROC
     ; Step 3: set up a stack frame as a fixed point on the stack
     push EBP
     mov EBP, ESP ; EBP is stable, so use it to store the address of old EBP's stack address
@@ -145,6 +145,6 @@ signedByteTo3Ascii PROC
     pop EBP ; get rid of stack frame
 
     ret
-signedByteTo3Ascii ENDP
+unsignedByteTo3Ascii ENDP
 
 END
