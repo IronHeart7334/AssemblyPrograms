@@ -55,12 +55,12 @@ myProc PROC
     push EBP     ; set up stack frame
     mov EBP, ESP ; EBP is stable, so use it to store the address of old EBP's stack address
     ; Now the stack looks like this: (using higher addresses at the top)
-    ;               [rubbish]
-    ;               [param3]
-    ;               [param2]
-    ;               [param1]
-    ;               [return address]
-    ; ESP -> EBP -> [old EBP]
+    ; [rubbish       ]
+    ; [param3        ]
+    ; [param2        ]
+    ; [param1        ]
+    ; [return address]
+    ; [old EBP       ] <- EBP <- ESP
     ; ESP can move around, so I only care about addresses relative to EBP
 
     ; Step 4: save all register values except for EAX (the return value)
@@ -72,16 +72,16 @@ myProc PROC
     push EBX
     push EBX
     ; Now the stack looks like this: (using higher addresses at the top)
-    ;               [rubbish]
-    ;               [param3]
-    ;               [param2]
-    ;               [param1]
-    ;               [return address]
-    ;        EBP -> [old EBP]
-    ;               [old EFLAGS]
-    ;               [old EBX]
-    ;               [allocated storage 1](d)
-    ;        ESP -> [allocated storage 2](e)
+    ; [rubbish            ]
+    ; [param3             ]
+    ; [param2             ]
+    ; [param1             ]
+    ; [return address     ]
+    ; [old EBP            ] <- EBP
+    ; [old EFLAGS         ]
+    ; [old EBX            ]
+    ; [allocated storage 1](d)
+    ; [allocated storage 2](e) <- ESP
 
     ; Step 6: now we get to the actual procedure
     mov EAX, DWORD PTR [EBP + 4*2] ; first parameter is two frames above EBP, as the return address is one above
