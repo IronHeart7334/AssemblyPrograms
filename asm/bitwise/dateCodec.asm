@@ -91,10 +91,10 @@ packDate PROC
     mov EAX, DWORD PTR [EBP + 4*2] ; 0000 0000 0000 0000 0000 0000 MONT H___
     shl EAX, 8d                    ; 0000 0000 0000 0000 MONT H___ 0000 0000
     mov EBX, DWORD PTR [EBP + 4*3] ; * EBX is now the day *
-    add EAX, BL                    ; 0000 0000 0000 0000 MONT H___ DAY_ ____
+    mov AL, BL                     ; 0000 0000 0000 0000 MONT H___ DAY_ ____
     shl EAX, 16d                   ; MONT H___ DAY_ ____ 0000 0000 0000 0000
-    add EBX, DWORD PTR [EBP + 4*4] ; * EBX is now the year *
-    add EAX, BX                    ; MONT H___ DAY_ ____ YEAR ____ ____ ____
+    mov EBX, DWORD PTR [EBP + 4*4] ; * EBX is now the year *
+    mov AX, BX                     ; MONT H___ DAY_ ____ YEAR ____ ____ ____
 
     ; Step 7: free allocated storage
     ;   no space allocated, so no space to free
