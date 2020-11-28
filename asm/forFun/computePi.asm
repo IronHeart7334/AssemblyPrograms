@@ -84,10 +84,13 @@ computePi PROC
         itsOddSoNegate:
             fchs ; ST(0) is now (-1 / (2n + 1))
         doneSigning:
+            ; This section is causing the problem: it's interpreting the decimals in EDX and EAX as integers
+            ; need to add them using the ST registers, save in EAX at the end of each loop, load from EAX start of each loop
             push EDX
             fstp DWORD PTR [ESP]; pops current series term into EDX
             pop EDX
             add EAX, EDX ; add it to the sum
+
 
         inc ECX
         jmp sigmaTop
