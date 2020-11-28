@@ -28,8 +28,9 @@
 
 ; named memory allocation and initialization
 .DATA
-maxNumTerms DWORD 10d ; how many terms of the series to use
+maxNumTerms DWORD 0FFFFh ; how many terms of the series to use
 maskGetParity DWORD 00000000000000000000000000000001b
+result REAL4 0.0
 
 ; names of procedures defined in other *.asm files in the project
 
@@ -39,9 +40,11 @@ main PROC
     finit
     call computePi
     fldpi ; push the "official" PI
-    fild EAX ; push my computed PI
+    push EAX ; for some reason, I can't just fild EAX. Found this solution online
+    fild DWORD PTR [ESP] ; push my computed PI
+    pop EAX
     fsub
-    fst EAX ; copy the difference into EAX
+    fstp result
     mov EAX, 0
     ret
 main ENDP
@@ -61,7 +64,7 @@ computePi PROC
     mov ECX, 0 ; n starts at 0
     mov EAX, 0 ; sum starts at 0
     sigmaTop:
-        cmp ECX, maxNumTerms
+        cmp ECX, maxNumTerms ; oops! not supposed to reference this here!
         je endOfSigma
     sigmaBody:
         finit ; not sure if I need this
@@ -70,26 +73,36 @@ computePi PROC
         add EDX, EDX ; EDX is 2n
         inc EDX      ; EDX is 2n + 1
         fld1 ; ST(0) is now 1.0
-        fild EDX ; ST(0) is now (2n + 1), ST(1) is now 1.0
+        push EDX
+        fild DWORD PTR [ESP] ; ST(0) is now (2n + 1), ST(1) is now 1.0
+        pop EDX
         fdiv ; ST(0) is now (1 / (2n + 1))
-        and EDX maskGetParity ; EDX now only contains its last bit
+        and EDX, maskGetParity ; EDX now only contains its last bit
         cmp EDX, 1d
         je itsOddSoNegate
         jmp doneSigning
         itsOddSoNegate:
             fchs ; ST(0) is now (-1 / (2n + 1))
         doneSigning:
-            fstp EDX ; pops current series term into EDX
+            push EDX
+            fstp DWORD PTR [ESP]; pops current series term into EDX
+            pop EDX
             add EAX, EDX ; add it to the sum
 
         inc ECX
         jmp sigmaTop
     endOfSigma:
+        push EAX
+        fild DWORD PTR [ESP]
+        pop EAX
         mov ECX, 4d
-        fild ECX ; ST(0) is not 4d, ST(1) is now PI / 4
+        push ECX
+        fild DWORD PTR [ESP] ; ST(0) is now 4d, ST(1) is now PI / 4
+        pop ECX
         fmul ; ST(0) now contains PI
-        fstp EAX ; pop PI into return value
-
+        push EAX
+        fstp DWORD PTR [ESP] ; pop PI into return value
+        pop EAX
 
     ; restore registers
     pop ECX
