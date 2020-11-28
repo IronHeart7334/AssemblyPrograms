@@ -30,7 +30,8 @@
 .DATA
 maxNumTerms DWORD 0FFFFh ; how many terms of the series to use
 maskGetParity DWORD 00000000000000000000000000000001b
-result REAL4 0.0
+calculatedPi REAL4 0.0
+difference REAL4 0.0
 
 ; names of procedures defined in other *.asm files in the project
 
@@ -38,13 +39,17 @@ result REAL4 0.0
 .CODE
 main PROC
     finit
+    mov EDX, maxNumTerms
+    push EDX
     call computePi
+    pop EDX
+    mov calculatedPi
     fldpi ; push the "official" PI
     push EAX ; for some reason, I can't just fild EAX. Found this solution online
     fild DWORD PTR [ESP] ; push my computed PI
     pop EAX
     fsub
-    fstp result
+    fstp difference ; see how far I'm off by
     mov EAX, 0
     ret
 main ENDP
@@ -64,7 +69,7 @@ computePi PROC
     mov ECX, 0 ; n starts at 0
     mov EAX, 0 ; sum starts at 0
     sigmaTop:
-        cmp ECX, maxNumTerms ; oops! not supposed to reference this here!
+        cmp ECX, DWORD PTR [EBP + 4*2]; the maxNumTerms I passed
         je endOfSigma
     sigmaBody:
         finit ; not sure if I need this
@@ -83,20 +88,19 @@ computePi PROC
         jmp doneSigning
         itsOddSoNegate:
             fchs ; ST(0) is now (-1 / (2n + 1))
-        doneSigning:
-            ; This section is causing the problem: it's interpreting the decimals in EDX and EAX as integers
-            ; need to add them using the ST registers, save in EAX at the end of each loop, load from EAX start of each loop
-            push EDX
-            fstp DWORD PTR [ESP]; pops current series term into EDX
-            pop EDX
-            add EAX, EDX ; add it to the sum
-
-
+        doneSigning: ; by now, ST(0) contains the next term in the series
+            push EAX
+            fild DWORD PTR [ESP] ; ST(0) is now the current sum, ST(1) is the current term
+            pop EAX
+            fadd ; add the new term to the sum
+            push EAX
+            fstp DWORD PTR [ESP]; pops current sum into EAX to save it for the next iteration
+            pop EAX
         inc ECX
         jmp sigmaTop
     endOfSigma:
         push EAX
-        fild DWORD PTR [ESP]
+        fild DWORD PTR [ESP] ; push the sum
         pop EAX
         mov ECX, 4d
         push ECX
