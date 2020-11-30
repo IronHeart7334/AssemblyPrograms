@@ -15,7 +15,8 @@
 .DATA
 radius REAL4 2.5
 height REAL4 4.0
-volume REAL4 0.0 ; answer should be 25 * PI (~ 78.5)
+volume REAL4 0.0 ; answer should be ~26.2
+three  REAL4 3.0 ; need this to divide by 3, as floats don't allow immediates
 
 ; names of procedures defined in other *.asm files in the project
 
@@ -32,8 +33,7 @@ main	PROC
     fmul          ; h(r^2)       ~~~
     fldpi         ; PI           h(r^2)
     fmul          ; PI(r^2)h     ~~~
-    mov EAX, 3d   ; PI(r^2)h     ~~~
-    fild EAX      ; 3.0          PI(r^2)h
+    fld three     ; 3.0          PI(r^2)h
     fdiv          ; PI(r^2)h/3   ~~~
     fstp volume   ; ~~~          ~~~
 

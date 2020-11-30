@@ -12,11 +12,11 @@
 
 ; named memory allocation and initialization
 .DATA
-copyHere            BYTE 1011 0111 b ; can use larger size if you want
-pasteHere           BYTE 1001 1101 b
-maskIsolateBits2To5 BYTE 0011 1100 b ; use this to copy
-maskClearBits0To3   BYTE 1111 0000 b ; use this before pasting
-result              BYTE 0000 0000 b
+copyHere            BYTE 10110111b ; can use larger size if you want
+pasteHere           BYTE 10011101b
+maskIsolateBits2To5 BYTE 00111100b ; use this to copy
+maskClearBits0To3   BYTE 11110000b ; use this before pasting
+result              BYTE 00000000b
 
 ; names of procedures defined in other *.asm files in the project
 

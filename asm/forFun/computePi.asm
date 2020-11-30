@@ -43,7 +43,7 @@ main PROC
     push EDX
     call computePi
     pop EDX
-    mov calculatedPi
+    mov calculatedPi, EAX
     fldpi ; push the "official" PI
     push EAX ; for some reason, I can't just fild EAX. Found this solution online
     fild DWORD PTR [ESP] ; push my computed PI
@@ -116,7 +116,7 @@ computePi PROC
     pop EDX
     popfd
 
-    ; remove stack fram
+    ; remove stack frame
     pop EBP
 
     ret
