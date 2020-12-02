@@ -16,6 +16,9 @@
 ;       pi/4 = the sum of (n from 0 to infinity) of ((-1)^(2n+1))/(2n+1)
 ;   6. multiply both sides by 4
 ;       pi = 4(the sum of (n from 0 to infinity) of ((-1)^(2n+1))/(2n+1))
+;
+;   The class I'm taking doesn't cover floating point functions,
+;   so I'll have to wait to improve this
 
 ; preprocessor directives
 .586
@@ -28,98 +31,70 @@
 
 ; named memory allocation and initialization
 .DATA
-maxNumTerms DWORD 0FFFFh ; how many terms of the series to use
+maxNumTerms   DWORD 0FFFFh ; how many terms of the series to use
 maskGetParity DWORD 00000000000000000000000000000001b
-calculatedPi REAL4 0.0
-difference REAL4 0.0
+currentN      REAL4 0.0
+calculatedPi  REAL4 0.0
+difference    REAL4 0.0
+four          REAL4 4.0
 
 ; names of procedures defined in other *.asm files in the project
 
 ; procedure code
 .CODE
 main PROC
-    finit
-    mov EDX, maxNumTerms
-    push EDX
-    call computePi
-    pop EDX
-    mov calculatedPi, EAX
+    mov ECX, 0d ; store term number here as well to get parity
+    sigmaTop:
+        finit ; need this each iteration
+        fld maxNumTerms
+        fld currentN
+        fcom
+        fstsw AX
+        sahf
+        jae sigmaEnd ; if currentN >= maxNumTerms
+    sigmaBody:
+        ; Instruction | ST(0) | ST(1) | ST(2)
+                      ; n       max     ~~~
+        fld ST(0)     ; n       n       max
+        fadd          ; 2n      max     ~~~
+        fld1          ; 1       2n      max
+        fadd          ; 2n+1    max     ~~~
+        fld1          ; 1       2n+1    max
+        fdivr         ;1/(2n+1) max     ~~~
+
+        and EDX, maskGetParity ; EDX now only contains its last bit
+        cmp EDX, 0d
+        je itsEvenSoNegate ; Even terms have odd powers of -1
+        jmp doneSigning
+        itsEvenSoNegate:
+            fchs ; ST(0) is now (-1 / (2n + 1))
+        doneSigning:
+            ; Instruction     | ST(0) | ST(1) | ST(2)
+                              ; term    max     ~~~
+            fld calculatedPi  ; sum     term    max
+            fadd              ; newSum  max     ~~~
+            fstp calculatedPi ; max     ~~~     ~~~
+            fld currentN      ; n       max     ~~~
+            fld1              ; 1       n       max
+            fadd              ; n+1     max     ~~~
+            fstp currentN     ; max     ~~~     ~~~
+            inc ECX
+            jmp sigmaTop
+    sigmaEnd:
+        ; Instruction     | ST(0) | ST(1) | ST(2)
+                          ; max     ~~~     ~~~
+        fld calculatedPi  ; pi/4    max     ~~~
+        fld four          ; 4       pi/4    max
+        fmul              ; pi      max     ~~~
+        fstp calculatedPi
+
     fldpi ; push the "official" PI
-    push EAX ; for some reason, I can't just fild EAX. Found this solution online
-    fild DWORD PTR [ESP] ; push my computed PI
-    pop EAX
+    fld calculatedPi
     fsub
     fstp difference ; see how far I'm off by
+
     mov EAX, 0
     ret
 main ENDP
-
-
-computePi PROC
-    ; Set up stack frame
-    push EBP
-    mov EBP, ESP
-
-    ; save registers
-    pushfd
-    push EDX
-    push ECX
-
-    ; do the computation
-    mov ECX, 0 ; n starts at 0
-    mov EAX, 0 ; sum starts at 0
-    sigmaTop:
-        cmp ECX, DWORD PTR [EBP + 4*2]; the maxNumTerms I passed
-        je endOfSigma
-    sigmaBody:
-        finit ; not sure if I need this
-        ; use EDX to hold 2n + 1
-        mov EDX, ECX ; EDX is n
-        add EDX, EDX ; EDX is 2n
-        inc EDX      ; EDX is 2n + 1
-        fld1 ; ST(0) is now 1.0
-        push EDX
-        fild DWORD PTR [ESP] ; ST(0) is now (2n + 1), ST(1) is now 1.0
-        pop EDX
-        fdiv ; ST(0) is now (1 / (2n + 1))
-        and EDX, maskGetParity ; EDX now only contains its last bit
-        cmp EDX, 1d
-        je itsOddSoNegate
-        jmp doneSigning
-        itsOddSoNegate:
-            fchs ; ST(0) is now (-1 / (2n + 1))
-        doneSigning: ; by now, ST(0) contains the next term in the series
-            push EAX
-            fild DWORD PTR [ESP] ; ST(0) is now the current sum, ST(1) is the current term
-            pop EAX
-            fadd ; add the new term to the sum
-            push EAX
-            fstp DWORD PTR [ESP]; pops current sum into EAX to save it for the next iteration
-            pop EAX
-        inc ECX
-        jmp sigmaTop
-    endOfSigma:
-        push EAX
-        fild DWORD PTR [ESP] ; push the sum
-        pop EAX
-        mov ECX, 4d
-        push ECX
-        fild DWORD PTR [ESP] ; ST(0) is now 4d, ST(1) is now PI / 4
-        pop ECX
-        fmul ; ST(0) now contains PI
-        push EAX
-        fstp DWORD PTR [ESP] ; pop PI into return value
-        pop EAX
-
-    ; restore registers
-    pop ECX
-    pop EDX
-    popfd
-
-    ; remove stack frame
-    pop EBP
-
-    ret
-computePi ENDP
 
 END
