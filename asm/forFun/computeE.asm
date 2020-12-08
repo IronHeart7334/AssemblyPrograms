@@ -28,10 +28,10 @@
 
 ; named memory allocation and initialization
 .DATA
-eulersNumber REAL4  1.0 ; start with just one term
-degree       REAL4 10.0 ; the number of terms to use
-currTermNum  REAL4  1.0 ; start at i = 1
-factorial    REAL4  1.0 ; 0 factorial
+eulersNumber REAL4   1.0 ; start with just one term
+degree       REAL4 100.0 ; the number of terms to use
+currTermNum  REAL4   1.0 ; start at i = 1
+factorial    REAL4   1.0 ; 0 factorial
 
 ; names of procedures defined in other *.asm files in the project
 
@@ -51,6 +51,7 @@ main	PROC
         fstp degree       ; currTermNum          ~~~                   pops degree from the stack
         fld factorial     ; (currTermNum - 1)!   currTermNum           push the factorial from the previous iteration
         fmul              ; currTermNum!         ~~~                   (n - 1)! * n is n!
+        fst factorial     ; currTermNum!         ~~~                   updates saved factorial
         fld1              ; 1.0                  currTermNum!          push 1.0
         fdivr             ; 1.0 / currTermNum!   ~~~                   compute the next term in the series
         fld eulersNumber  ; eulersNumber         1.0 / currTermNum !   load the current estimate of Euler's number
