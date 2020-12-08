@@ -5,9 +5,7 @@
 ;		    oldRoot := root
 ;			root := (2.0*root + x/(root*root)) / 3.0
 ;		end until
-;	Write a console32 Assembly Language program to approximate the square root of a real number.
-;
-;	Does he mean cube root instead of square root?
+;	Write a console32 Assembly Language program to approximate the cube root of a real number.
 
 ; preprocessor directives
 .586
