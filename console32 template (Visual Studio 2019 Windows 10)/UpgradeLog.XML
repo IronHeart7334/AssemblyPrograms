@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?><?xml-stylesheet type='text/xsl' href='_UpgradeReport_Files/UpgradeReport.xslt'?><UpgradeLog>
+<Properties><Property Name="Solution" Value="console32">
+</Property><Property Name="Solution File" Value="C:\Users\w0012551\Documents\console32 template\console32 template\console32.sln">
+</Property><Property Name="Date" Value="Wednesday, February 06, 2013">
+</Property><Property Name="Time" Value="17:43 PM">
+</Property></Properties><Event ErrorLevel="0" Project="console32" Source="console32\console32.vcproj" Description="Converting project file 'C:\Users\w0012551\Documents\console32 template\console32 template\console32\console32.vcproj'.">
+</Event><Event ErrorLevel="1" Project="console32" Source="console32\console32.vcproj" Description="VCWebServiceProxyGeneratorTool is no longer supported. The tool has been removed from your project settings.">
+</Event><Event ErrorLevel="0" Project="console32" Source="console32\console32.vcproj" Description="Done converting to new project file 'C:\Users\w0012551\Documents\console32 template\console32 template\console32\console32.vcxproj'.">
+</Event><Event ErrorLevel="3" Project="console32" Source="console32\console32.vcproj" Description="Converted">
+</Event><Event ErrorLevel="0" Project="" Source="console32.sln" Description="Solution converted successfully">
+</Event><Event ErrorLevel="3" Project="" Source="console32.sln" Description="Converted">
+</Event></UpgradeLog>

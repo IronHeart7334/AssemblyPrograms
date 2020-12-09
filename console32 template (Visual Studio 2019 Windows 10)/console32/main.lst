@@ -1,0 +1,74 @@
+Microsoft (R) Macro Assembler Version 14.27.29111.0	    09/06/20 19:38:33
+main.asm						     Page 1 - 1
+
+
+				; general comments
+
+				; preprocessor directives
+				.586
+				.MODEL FLAT
+
+				; external files to link with
+
+				; stack configuration
+				.STACK 4096
+
+				; named memory allocation and initialization
+ 00000000			.DATA
+ 00000000 ABCDABCD		theAnswer	DWORD	0ABCDABCDh
+
+				; names of procedures defined in other *.asm files in the project
+
+				; procedure code
+ 00000000			.CODE
+ 00000000			main	PROC
+
+ 00000000  B8 00005D5E			mov EAX, 23902 
+ 00000005  83 C0 E0			add EAX, -32
+ 00000008  A3 00000000 R		mov theAnswer, EAX
+
+ 0000000D  B8 00000000			mov EAX, 0
+ 00000012  C3				ret
+ 00000013			main	ENDP
+
+				END
+Microsoft (R) Macro Assembler Version 14.27.29111.0	    09/06/20 19:38:33
+main.asm						     Symbols 2 - 1
+
+
+
+
+Segments and Groups:
+
+                N a m e                 Size     Length   Align   Combine Class
+
+FLAT . . . . . . . . . . . . . .	GROUP
+STACK  . . . . . . . . . . . . .	32 Bit	 00001000 Para	  Stack	  'STACK'	 
+_DATA  . . . . . . . . . . . . .	32 Bit	 00000004 Para	  Public  'DATA'	
+_TEXT  . . . . . . . . . . . . .	32 Bit	 00000013 Para	  Public  'CODE'	
+
+
+Procedures, parameters, and locals:
+
+                N a m e                 Type     Value    Attr
+
+main . . . . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 00000013 Public
+
+
+Symbols:
+
+                N a m e                 Type     Value    Attr
+
+@CodeSize  . . . . . . . . . . .	Number	 00000000h   
+@DataSize  . . . . . . . . . . .	Number	 00000000h   
+@Interface . . . . . . . . . . .	Number	 00000000h   
+@Model . . . . . . . . . . . . .	Number	 00000007h   
+@code  . . . . . . . . . . . . .	Text   	 _TEXT
+@data  . . . . . . . . . . . . .	Text   	 FLAT
+@fardata?  . . . . . . . . . . .	Text   	 FLAT
+@fardata . . . . . . . . . . . .	Text   	 FLAT
+@stack . . . . . . . . . . . . .	Text   	 FLAT
+theAnswer  . . . . . . . . . . .	DWord	 00000000 _DATA	
+
+	   0 Warnings
+	   0 Errors
