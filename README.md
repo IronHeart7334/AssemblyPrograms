@@ -9,7 +9,7 @@ so I think it best to keep everything I've learned in once central repository,
 as a quick reference for future classes.
 
 ## Using the Project
-Most of these files are purely referential: they cannot run on my machine.
+Most of these files are purely for referential purposes: they cannot run on my machine.
 Throughout the semester,
 I've been using the Console32 template in Visual Studio on a virtual machine specifically configured for this class,
 so I have no clue how to properly configure this on any other device.
