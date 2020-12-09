@@ -28,7 +28,7 @@
 
 ; named memory allocation and initialization
 .DATA
-eulersNumber REAL4   1.0 ; start with just one term
+eulersNumber REAL4   1.0 ; start with just one term so I don't need to check for 0! versus 1!, to make the math easier
 degree       REAL4 100.0 ; the number of terms to use
 currTermNum  REAL4   1.0 ; start at i = 1
 factorial    REAL4   1.0 ; 0 factorial
