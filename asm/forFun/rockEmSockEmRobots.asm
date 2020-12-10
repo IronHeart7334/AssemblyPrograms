@@ -1,5 +1,5 @@
 ; general comments
-;   This is a template for how to do procedures following the cdelc style
+;   Rock-Em-Sock-Em-Robots
 
 ; preprocessor directives
 .586
@@ -55,7 +55,8 @@ main PROC
         mov winnerRobot, "2"
     fillInMessage:
         lea EBX, msg
-        mov BYTE PTR [EBX + 1*6], winnerRobot ; set the 6th character of the message
+        mov AL, winnerRobot
+        mov BYTE PTR [EBX + 1*6], AL ; set the 6th character of the message
 
     mov EAX, 0
     ret
@@ -95,7 +96,7 @@ robotFight PROC
         push DWORD PTR [EBP - 4*2]
         call getDamage ; EAX contains the damage
         pop DWORD PTR [EBP - 4*2]
-        shr DWORD PTR [EBP - 4*2], 1d ; next "random" number
+        ror DWORD PTR [EBP - 4*2], 1d ; next "random" number
         cmp DL, AL
         jb robot2DamageOverflow
         jmp robot2TakeDamage
@@ -111,7 +112,7 @@ robotFight PROC
         push DWORD PTR [EBP - 4*2]
         call getDamage ; EAX contains the damage
         pop DWORD PTR [EBP - 4*2]
-        shr DWORD PTR [EBP - 4*2], 1d ; next "random" number
+        ror DWORD PTR [EBP - 4*2], 1d ; next "random" number
         cmp DH, AL
         jb robot1DamageOverflow
         jmp robot1TakeDamage
@@ -157,7 +158,7 @@ getDamage PROC
     ; [old EDX        ] <- ESP
 
     mov EAX, DWORD PTR [EBP + 4*1]
-    shr AL, 2d ; divide AL by 4. It is now between 0 and 3d
+    shr AL, 6d ; divide AL by 32. It is now between 0 and 3d
     inc AL ; AL is now between 1 and 4
     shl EAX, 24d
     shr EAX, 24d ; clear all bits of A register except for AL
@@ -170,3 +171,5 @@ getDamage PROC
 
     ret
 getDamage ENDP
+
+END

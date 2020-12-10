@@ -15,9 +15,9 @@
 
 ; named memory allocation and initialization
 .DATA
-_a     REAL4   0.0 ; Lower limit of integration
-_b     REAL4   3.0 ; Upper limit of integration
-_n     DWORD 100d  ; Number of rectangles to estimate using
+_a     REAL4   2.5 ; Lower limit of integration
+_b     REAL4   3.25 ; Upper limit of integration
+_n     DWORD 1000d  ; Number of rectangles to estimate using
 deltaX REAL4   0.0 ; computed by program
 sigma  REAL4   0.0 ; computed by program
 _i     DWORD   1d  ; current rectangle number, set by program
@@ -36,14 +36,14 @@ main PROC
     fld _b        ; b         ~~~     Push upper limit of integration
 	fld _a        ; a         b       Push lower limit of integration
     fsub          ; b-a       ~~~     Compute width of limits of integration
-    fld _n        ; n         b-a     Push the number of rectangles
+    fild _n        ; n         b-a     Push the number of rectangles
     fdiv          ; (b-a)/n   ~~~     Compute dx
     fstp deltaX   ; ~~~       ~~~     Store dx
 
 	; Step 2: compute sigma
 	mov ECX, 1d ; will store _i in ECX
 	checkSigmaRange: ; FOR i from 1 to n (inclusive of end points)
-        cmp ECX, n_
+        cmp ECX, _n
         jbe addNextTerm
         jmp doneLooping
     addNextTerm:
