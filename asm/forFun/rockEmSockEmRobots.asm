@@ -30,7 +30,7 @@ main PROC
     ror EDX, CL ; EDX contains the new "random" number
 
     ; Before calling the procedure, the caller must push parameters in reverse order
-    push EDX
+    push EDX ; push random number
     mov EDX, 0
     mov DH, robot1HP
     mov DL, robot2HP
@@ -61,75 +61,87 @@ main PROC
     ret
 main ENDP
 
+; int robotFight(int robotHps, int randomNumber)
 robotFight PROC
+    ; Set up stack frame
+    push EBP
+    mov EBP, ESP
+
+    ; Save registers
+    pushfd
+    push EDX
+
+    ; Allocate stack space
+    push DWORD PTR [EBP + 4*3] ; copy random number parameter to local random number
+
+    ; Now the stack looks like this: (using higher addresses at the top)
+    ; [rubbish        ]
+    ; [random number  ]
+    ; [robot HPs      ]
+    ; [return address ]
+    ; [old EBP        ] <- EBP
+    ; [local random   ]
+    ; [local robot HPs]
+    ; [old EFLAGS     ] <- ESP
+
+    ; Now the robots take turns hitting each other
+    mov EDX, DWORD PTR [EBP + 4*2] ; EDX now holds local robot HPs
+    checkForKo: ; check if either robot is knocked out
+        cmp DH, 0
+        je koOccurred
+        cmp DL, 0
+        je koOccurred
+    robot1PunchRobot2:
+        ; push random number to get damage
+        push DWORD PTR [EBP - 4*1]
+        call getDamage ; EAX contains the damage
+        pop DWORD PTR [EBP - 4*1]
+        shr DWORD PTR [EBP - 4*1], 1d ; next "random" number
+        cmp DL, AL
+        jb robot2DamageOverflow
+        jmp robot2TakeDamage
+        robot2DamageOverflow:
+            mov AL, DL ; cap damage at robot HP
+        robot2TakeDamage:
+            sub DL, AL ; POW!
+        ; check if robot 2 can punch back
+        cmp DL, 0
+        je koOccurred ; nope! He's down for the count!
+    robot2PunchRobot1:
+        ; push random number to get damage
+        push DWORD PTR [EBP - 4*1]
+        call getDamage ; EAX contains the damage
+        pop DWORD PTR [EBP - 4*1]
+        shr DWORD PTR [EBP - 4*1], 1d ; next "random" number
+        cmp DH, AL
+        jb robot1DamageOverflow
+        jmp robot1TakeDamage
+        robot1DamageOverflow:
+            mov AL, DH ; cap damage at robot HP
+        robot1TakeDamage:
+            sub DH, AL ; POW!
+        jmp checkForKo        
+    koOccurred:
+        ; one robot knocked the other's block off
+
+    ; Set return value to local robot HPs
+    mov EAX, EDX
+
+    ; Free stack space
+    pop EDX
+
+    ; restore registers
+    pop EDX
+    popfd
+
+    ; restore EBP
+    pop EBP
+
     ret
 robotFight ENDP
 
-
-
-
-; cdecl says that a procedure must leave all registers (except for EAX) and the stack as it found them
-; it returns its value in EAX
-; and is not allowed to access named memory locations
-; this example in c would be
-;   int myProc(int a, int b, int c){
-;        int d = a - b;
-;        int e = a + c;
-;        return d + e;
-;   }
-myProc PROC
-    ; Step 3: set up a stack frame as a fixed point on the stack
-    push EBP     ; set up stack frame
-    mov EBP, ESP ; EBP is stable, so use it to store the address of old EBP's stack address
-    ; Now the stack looks like this: (using higher addresses at the top)
-    ; [rubbish       ]
-    ; [param3        ]
-    ; [param2        ]
-    ; [param1        ]
-    ; [return address]
-    ; [old EBP       ] <- EBP <- ESP
-    ; ESP can move around, so I only care about addresses relative to EBP
-
-    ; Step 4: save all register values except for EAX (the return value)
-    pushfd
-    push EBX
-
-    ; Step 5: (optional) allocate temporary storage (saves on register usage)
-    mov EBX, 0 ; don't need to 0-out first
-    push EBX
-    push EBX
-    ; Now the stack looks like this: (using higher addresses at the top)
-    ; [rubbish            ]
-    ; [param3             ]
-    ; [param2             ]
-    ; [param1             ]
-    ; [return address     ]
-    ; [old EBP            ] <- EBP
-    ; [old EFLAGS         ]
-    ; [old EBX            ]
-    ; [allocated storage 1](d)
-    ; [allocated storage 2](e) <- ESP
-
-    ; Step 6: now we get to the actual procedure
-    mov EAX, DWORD PTR [EBP + 4*2] ; first parameter is two frames above EBP, as the return address is one above
-    sub EAX, DWORD PTR [EBP + 4*3] ; EAX is now a - b
-    mov DWORD PTR [EBP - 4*3], EAX ; store a - b in d
-    mov EAX, DWORD PTR [EBP + 4*2] ; EAX is param a again
-    add EAX, DWORD PTR [EBP + 4*4] ; EAX is a + c
-    mov DWORD PTR [EBP - 4*4], EAX ; store a + c in d (don't need to do, but this is an example)
-    mov EAX, DWORD PTR [EBP - 4*3] ; EAX is a - b
-    add EAX, DWORD PTR [EBP - 4*4] ; EAX = d + e = a - b + a + c = 2a - b + c
-
-    ; Step 7: free allocated storage
-    pop EBX
-    pop EBX
-
-    ; Step 8: restore everything (except EAX) back to the way it was
-    pop EBX
-    popfd
-    pop EBP ; get rid of stack frame
-
+; int getDamage(int randomNumber)
+getDamage PROC
+    TODO
     ret
-myProc ENDP
-
-END
+getDamage ENDP
