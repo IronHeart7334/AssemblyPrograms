@@ -2,9 +2,7 @@
 ;   This is a program I made for myself to practice just about everything I've learned in CISP 310 up to this point.
 ;   This program computes the integral from a to b of f(x) dx using Riemann Sum estimation using the formula
 ;
-;   I = ((b - a) / n) * SIGMA from i = 1 to n of (f(a + i(b - a) / n))
-;
-;   It should go without saying, but this program isn't very accurate yet, as the class hasn't covered decimal numbers yet.
+;   I = SIGMA from i = 1 to n of (f(a + i*dx)*dx
 
 ; preprocessor directives
 .586
@@ -17,75 +15,68 @@
 
 ; named memory allocation and initialization
 .DATA
-; everything must be signed
-; delta X will be multiplied by sigma, so that limits it to at most a DWORD so the product can fit in EDX:EAX
-; BUT it will also be used in f(x) for i * deltaX, so that must also be a DWORD for when multiplying together, so deltaX must be stored as a WORD
-; BUT since I need to chain multiplication, must store delta x as a BYTE
-; delta X is (b - a) / n, so in order for the quotient to be a BYTE, so must n.
-; sigma might be rather large, so store it as a DWORD. I can extend deltaX when I need to multiply the two of them
-a_     WORD   0d ; can change these 3 values
-b_     WORD  50d ; for this to work, n_ must be smaller than b_ - a_. For the highest accuracy, b_ - a_ should be evenly divisible by n_
-n_     BYTE  10d ;
-deltaX BYTE   0d
-sigma  DWORD  0d
+_a     REAL4   0.0 ; Lower limit of integration
+_b     REAL4   3.0 ; Upper limit of integration
+_n     DWORD 100d  ; Number of rectangles to estimate using
+deltaX REAL4   0.0 ; computed by program
+sigma  REAL4   0.0 ; computed by program
+_i     DWORD   1d  ; current rectangle number, set by program
+four   REAL4   4.0 ; used for f(x)
 
 ; names of procedures defined in other *.asm files in the project
 
 ; procedure code
 .CODE
-main	PROC
+main PROC
+	; Evaluate the integral of f(x) = 4*PI(x^2)
 
-	computeDeltaX:
-        mov BX, a_
-        mov AX, b_
-        sub AX, BX    ; AX is now b - a
-        mov CL, n_
-        idiv CL        ; stores the remainder of AX / CL in AL ((b - a) / n)
-        mov deltaX, AL ; Done computing deltaX
+	; Step 1: compute deltaX
+	; Instruction | ST(0)  |  ST(1) | comments
+	finit         ; ~~~       ~~~     Prepare floating point registers
+    fld _b        ; b         ~~~     Push upper limit of integration
+	fld _a        ; a         b       Push lower limit of integration
+    fsub          ; b-a       ~~~     Compute width of limits of integration
+    fld _n        ; n         b-a     Push the number of rectangles
+    fdiv          ; (b-a)/n   ~~~     Compute dx
+    fstp deltaX   ; ~~~       ~~~     Store dx
 
-    computeSigma:
-                            ; set up the for loop
-        mov EBX, 0d         ; store result in EBX
-        mov CL, 1d          ; FOR i from 1 to n (inclusive of end points)
-        checkSigmaRange:
-            cmp CL, n_
-            jle addNextTerm
-            jmp doneLooping
-        addNextTerm:
-                                ; to make this easier, f(x) = x to avoid having to do much multiplication
-                                ; store f(x) in AX as I'm processing it
-            mov EAX, 0d
-            mov AL, deltaX
-            imul CL             ; AX is now i * deltaX
-            add AX, a_          ; AX is now a + i * deltaX (the height of the current rectangle)
-            ; check if AX is negative
-            cmp AX, 0d          ; IF AX < 0
-            jl extSignBit       ;    set high bits of EAX to 1 (sort of a cwd that works on EAX instead of DX:AX)
-            jmp doAdd           ; ELSE
-                                ;    just leave high bits of EAX as 0
-                                ; END IF
-            extSignBit:
-                mov DX, AX          ; swap out low bits of EAX so I can change the high bits
-                mov EAX, 0FFFF0000h ; set high bits of EAX to 1
-                mov AX, DX
+	; Step 2: compute sigma
+	mov ECX, 1d ; will store _i in ECX
+	checkSigmaRange: ; FOR i from 1 to n (inclusive of end points)
+        cmp ECX, n_
+        jbe addNextTerm
+        jmp doneLooping
+    addNextTerm:
+        ; Instruction | ST(0)  | ST(1) | comments
+		finit         ; ~~~      ~~~     Need to initialize float registers before each iteration
+        fld deltaX    ; dx       ~~~     Push width of rectangle
+        fild _i       ; i        dx      Push rectangle number
+        fmul          ; i*dx     ~~~     Compute current x offset
+		fld _a        ; a        i*dx    Push starting x
+		fadd          ; a+i*dx   ~~~     Compute current x
+		fld ST(0)     ; a+i*dx   a+i*dx  Duplicate current x
+		fmul          ; x^2      ~~~     Compute x^2
+		fld four      ; 4        x^2
+		fmul          ; 4(x^2)   ~~~
+		fldpi         ; PI       4(x^2)
+		fmul          ; 4PIx^2   ~~~     ST(0) now contains the rectangle's height
+		fld deltaX    ; dx       h       Push rectangle width
+		fmul          ; h*dx     ~~~     Compute rectangle area
+		fld sigma     ; sigma    h*dx    Push current sum
+        fadd          ; new sum  ~~~     Add current rectangle's area to the sum
+		fstp sigma    ; ~~~      ~~~     Update saved sum
+        inc ECX                          ; Move to the next term
+		mov _i, ECX
+        jmp checkSigmaRange
+    doneLooping:
+        ; The integral is now stored in sigma
 
-            doAdd:
-                add EBX, EAX        ; add that rectangle's height to the sum
-                inc CL              ; remember to increment i!
-                jmp checkSigmaRange
-        doneLooping:
-            mov sigma, EBX
-
-    multiplyTogether:
-        ; multiply the total heights of rectangles by the widths
-        mov AL, deltaX
-        cbw ; extends AL to AX
-
-        mov EDX, sigma
-        imul EDX        ; EDX:EAX is now the integral
+	; Note how I am multiplying by dx inside the loop, rather than after summing all the rectangles
+	; This is to prevent sigma from going beyond the limits of floating point numbers when values get large
+	; dx is really small, so that counteracts large heights
 
 	mov EAX, 0
 	ret
-main	ENDP
+main ENDP
 
 END
