@@ -80,9 +80,8 @@ robotFight PROC
     ; [robot HPs      ]
     ; [return address ]
     ; [old EBP        ] <- EBP
-    ; [local random   ]
-    ; [local robot HPs]
-    ; [old EFLAGS     ] <- ESP
+    ; [old EFLAGS     ]
+    ; [local random   ] <- ESP
 
     ; Now the robots take turns hitting each other
     mov EDX, DWORD PTR [EBP + 4*2] ; EDX now holds local robot HPs
@@ -93,10 +92,10 @@ robotFight PROC
         je koOccurred
     robot1PunchRobot2:
         ; push random number to get damage
-        push DWORD PTR [EBP - 4*1]
+        push DWORD PTR [EBP - 4*2]
         call getDamage ; EAX contains the damage
-        pop DWORD PTR [EBP - 4*1]
-        shr DWORD PTR [EBP - 4*1], 1d ; next "random" number
+        pop DWORD PTR [EBP - 4*2]
+        shr DWORD PTR [EBP - 4*2], 1d ; next "random" number
         cmp DL, AL
         jb robot2DamageOverflow
         jmp robot2TakeDamage
@@ -109,10 +108,10 @@ robotFight PROC
         je koOccurred ; nope! He's down for the count!
     robot2PunchRobot1:
         ; push random number to get damage
-        push DWORD PTR [EBP - 4*1]
+        push DWORD PTR [EBP - 4*2]
         call getDamage ; EAX contains the damage
-        pop DWORD PTR [EBP - 4*1]
-        shr DWORD PTR [EBP - 4*1], 1d ; next "random" number
+        pop DWORD PTR [EBP - 4*2]
+        shr DWORD PTR [EBP - 4*2], 1d ; next "random" number
         cmp DH, AL
         jb robot1DamageOverflow
         jmp robot1TakeDamage
@@ -120,7 +119,7 @@ robotFight PROC
             mov AL, DH ; cap damage at robot HP
         robot1TakeDamage:
             sub DH, AL ; POW!
-        jmp checkForKo        
+        jmp checkForKo
     koOccurred:
         ; one robot knocked the other's block off
 
@@ -142,6 +141,32 @@ robotFight ENDP
 
 ; int getDamage(int randomNumber)
 getDamage PROC
-    TODO
+    ; Set up stack frame
+    push EBP
+    mov EBP, ESP
+
+    ; Save registers
+    pushfd
+
+    ; Now the stack looks like this: (using higher addresses at the top)
+    ; [rubbish        ]
+    ; [random number  ]
+    ; [return address ]
+    ; [old EBP        ] <- EBP
+    ; [old EFLAGS     ]
+    ; [old EDX        ] <- ESP
+
+    mov EAX, DWORD PTR [EBP + 4*1]
+    shr AL, 2d ; divide AL by 4. It is now between 0 and 3d
+    inc AL ; AL is now between 1 and 4
+    shl EAX, 24d
+    shr EAX, 24d ; clear all bits of A register except for AL
+
+    ; Restore registers
+    popfd
+
+    ; Take down stack frame
+    pop EBP
+
     ret
 getDamage ENDP
