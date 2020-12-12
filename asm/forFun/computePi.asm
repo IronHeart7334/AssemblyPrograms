@@ -28,11 +28,11 @@
 
 ; named memory allocation and initialization
 .DATA
-maxNumTerms       DWORD 1000d ; how many terms of the series to use
-currentTerm       DWORD 0d
-calculatedPi      REAL4 0.0
-four              REAL4 4.0
-negOneToSomePower REAL4 -1.0 ; start at (-1)^-1
+maxNumTerms       REAL4 1000.0 ; how many terms of the series to use
+currTermNum       REAL4    0.0
+calculatedPi      REAL4    0.0
+four              REAL4    4.0
+negOneToSomePower REAL4   -1.0 ; start at (-1)^-1
 
 ; names of procedures defined in other *.asm files in the project
 
@@ -41,12 +41,12 @@ negOneToSomePower REAL4 -1.0 ; start at (-1)^-1
 main PROC
     sigmaTop:
         finit ; need this each iteration
-        fild maxNumTerms      ; max         ~~~
-        fild currentTerm      ; n           max
+        fld maxNumTerms       ; max         ~~~
+        fld currTermNum       ; n           max
         fcom                  ; n           max
         fstsw AX              ; n           max
         sahf                  ; n           max
-        jae sigmaEnd          ; break when currentTerm >= maxNumTerms
+        jae sigmaEnd          ; break when currTermNum >= maxNumTerms
     sigmaBody:
         fld ST(0)             ; n            n
         fadd                  ; 2n           ~~~
@@ -59,9 +59,10 @@ main PROC
         fld calculatedPi      ; sum          term
         fadd                  ; newSum       ~~~
         fstp calculatedPi     ; ~~~          ~~~
-        mov ECX, currentTerm
-        inc ECX
-        mov currentTerm, ECX
+        fld currTermNum       ; n            ~~~
+        fld1                  ; 1            n
+        fadd                  ; n+1          ~~~
+        fstp currTermNum      ; ~~~          ~~~
         jmp sigmaTop
     sigmaEnd:
         ; Instruction         | ST(0)      | ST(1)

@@ -12,12 +12,12 @@
 
 ; named memory allocation and initialization
 .DATA
-randomSeed       DWORD 0F1A3C5E7h
-randomRotate     BYTE         35d
-robot1HP         BYTE         20d
-robot2HP         BYTE         20d
-winnerRobot      BYTE         "_"
-msg              BYTE "Robot _ wins!", 0
+randomSeed       DWORD 0F1A3C5E7h        ; These first two are used as a psuedo-random number generator
+randomRotate     BYTE         35d        ; plus, this gives me practice with bitwise operations
+robot1HP         BYTE         20d        ; Each robot starts with 20 HP
+robot2HP         BYTE         20d        ; don't need some of this named memory, but it makes things clearer for me.
+winnerRobot      BYTE         "_"        ;
+msg              BYTE "Robot _ wins!", 0 ; I'm trying out character insertion
 
 ; names of procedures defined in other *.asm files in the project
 
@@ -47,8 +47,8 @@ main PROC
     mov robot2HP, AL
 
     ; Check who the winner is
-    cmp AH, 0 ; IF(robot1HP == 0)
-    je robot2Wins ; robot 2 has KOed robot 1
+    cmp AH, 0            ; IF(robot1HP == 0)
+    je robot2Wins        ; robot 2 has KOed robot 1
     mov winnerRobot, "1" ; else robot 1 wins
     jmp fillInMessage
     robot2Wins:
@@ -94,14 +94,14 @@ robotFight PROC
     robot1PunchRobot2:
         ; push random number to get damage
         push DWORD PTR [EBP - 4*2]
-        call getDamage ; EAX contains the damage
+        call getDamage ; AL contains the damage
         pop DWORD PTR [EBP - 4*2]
         ror DWORD PTR [EBP - 4*2], 1d ; next "random" number
         cmp DL, AL
         jb robot2DamageOverflow
         jmp robot2TakeDamage
         robot2DamageOverflow:
-            mov AL, DL ; cap damage at robot HP
+            mov AL, DL ; cap damage at robot HP to prevent overflow
         robot2TakeDamage:
             sub DL, AL ; POW!
         ; check if robot 2 can punch back
@@ -117,7 +117,7 @@ robotFight PROC
         jb robot1DamageOverflow
         jmp robot1TakeDamage
         robot1DamageOverflow:
-            mov AL, DH ; cap damage at robot HP
+            mov AL, DH ; cap damage at robot HP to prevent overflow
         robot1TakeDamage:
             sub DH, AL ; POW!
         jmp checkForKo
@@ -157,9 +157,10 @@ getDamage PROC
     ; [old EFLAGS     ]
     ; [old EDX        ] <- ESP
 
-    mov EAX, DWORD PTR [EBP + 4*1]
-    shr AL, 6d ; divide AL by 32. It is now between 0 and 3d
-    inc AL ; AL is now between 1 and 4
+    ; Instruction                  | minimum AL | maximum AL
+    mov EAX, DWORD PTR [EBP + 4*1] ; 0            2^8 - 1
+    shr AL, 6d                     ; 0            2^2 - 1
+    inc AL                         ; 1            2^2
     shl EAX, 24d
     shr EAX, 24d ; clear all bits of A register except for AL
 
