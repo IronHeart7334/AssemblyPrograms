@@ -1,5 +1,6 @@
 ; general comments
-;   This program computes PI using the Power Series
+;   This program computes PI using the Leibniz formula for PI
+;   https://en.wikipedia.org/wiki/Leibniz_formula_for_%CF%80
 ;
 ;   1. Start with the power series
 ;       1 / (1 - x) = the sum of (n from 0 to infinity) of x^n
@@ -14,8 +15,6 @@
 ;       pi/4 = the sum of (n from 0 to infinity) of ((-1)^n) / (2n+1)
 ;   6. multiply both sides by 4
 ;       pi = 4(the sum of (n from 0 to infinity) of ((-1)^n) / (2n+1))
-;
-;   The class I'm taking doesn't cover floating point functions, so I'll have to wait to improve this
 
 ; preprocessor directives
 .586
@@ -28,7 +27,7 @@
 
 ; named memory allocation and initialization
 .DATA
-maxNumTerms       REAL4 1000.0 ; how many terms of the series to use
+maxNumTerms       REAL4 9999.0 ; how many terms of the series to use
 currTermNum       REAL4    0.0
 calculatedPi      REAL4    0.0
 four              REAL4    4.0
@@ -55,7 +54,7 @@ main PROC
         fld negOneToSomePower ; (-1)^n-1     2n+1
         fchs                  ; (-1)^n       2n+1
         fst negOneToSomePower ; (-1)^n       2n+1
-        fdirv                 ;(-1)^n/(2n+1) ~~~   ST(0) now contains the next term of the series
+        fdivr                 ;(-1)^n/(2n+1) ~~~   ST(0) now contains the next term of the series
         fld calculatedPi      ; sum          term
         fadd                  ; newSum       ~~~
         fstp calculatedPi     ; ~~~          ~~~
