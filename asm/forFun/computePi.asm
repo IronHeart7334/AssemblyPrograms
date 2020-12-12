@@ -1,13 +1,11 @@
 ; general comments
-;   This program computes PI using the Tailor Polynomial of inverse tangent.
+;   This program computes PI using the Power Series
 ;
-;   1.
+;   1. Start with the power series
 ;       1 / (1 - x) = the sum of (n from 0 to infinity) of x^n
-;   2.
-;       let x = -x
+;   2. let x = -x
 ;       1 / (1 + x) = the sum of (n from 0 to infinity) of (-x)^n = ((-1)^n)*((x)^n)
-;   3.
-;       let x = x^2
+;   3. let x = x^2
 ;       1 / (1 + x^2) = the sum of (n from 0 to infinity) of ((-1)^n)*((x)^2n)
 ;   4. Integrate both sides with respect to x
 ;       arctan(x) = the sum of (n from 0 to infinity) of ((-1)^n)*((x)^2n+1) / (2n+1)
@@ -17,8 +15,7 @@
 ;   6. multiply both sides by 4
 ;       pi = 4(the sum of (n from 0 to infinity) of ((-1)^n) / (2n+1))
 ;
-;   The class I'm taking doesn't cover floating point functions,
-;   so I'll have to wait to improve this
+;   The class I'm taking doesn't cover floating point functions, so I'll have to wait to improve this
 
 ; preprocessor directives
 .586
@@ -31,63 +28,47 @@
 
 ; named memory allocation and initialization
 .DATA
-maxNumTerms   DWORD 1000d ; how many terms of the series to use
-maskGetParity DWORD 00000000000000000000000000000001b
-currentN      REAL4 0.0
-calculatedPi  REAL4 0.0
-difference    REAL4 0.0
-four          REAL4 4.0
+maxNumTerms       DWORD 1000d ; how many terms of the series to use
+currentTerm       DWORD 0d
+calculatedPi      REAL4 0.0
+four              REAL4 4.0
+negOneToSomePower REAL4 -1.0 ; start at (-1)^-1
 
 ; names of procedures defined in other *.asm files in the project
 
 ; procedure code
 .CODE
 main PROC
-    mov ECX, 0d ; store term number here as well to get parity
     sigmaTop:
         finit ; need this each iteration
-        cmp ECX, maxNumTerms
-        jae sigmaEnd ; if currentN >= maxNumTerms
+        fild maxNumTerms      ; max         ~~~
+        fild currentTerm      ; n           max
+        fcom                  ; n           max
+        fstsw AX              ; n           max
+        sahf                  ; n           max
+        jae sigmaEnd          ; break when currentTerm >= maxNumTerms
     sigmaBody:
-        ; Instruction | ST(0) | ST(1)
-        fld currentN  ; n       ~~~
-        fld ST(0)     ; n       n
-        fadd          ; 2n      ~~~
-        fld1          ; 1       2n
-        fadd          ; 2n+1    ~~~
-        fld1          ; 1       2n+1
-        fdivr         ;1/(2n+1) ~~~
-        mov EDX, ECX
-        and EDX, maskGetParity ; EDX now only contains its last bit
-        cmp EDX, 1d
-        je itsOddSoNegate ; odd terms have odd powers of -1
-        jmp doneSigning
-        itsOddSoNegate:
-            fchs ; ST(0) is now (-1 / (2n + 1))
-        doneSigning:
-            ; Instruction     | ST(0) | ST(1)
-                              ; term    ~~~
-            fld calculatedPi  ; sum     term
-            fadd              ; newSum  ~~~
-            fstp calculatedPi ; ~~~     ~~~
-            fld currentN      ; n       ~~~
-            fld1              ; 1       n
-            fadd              ; n+1     ~~~
-            fstp currentN     ; ~~~     ~~~
-            inc ECX
-            jmp sigmaTop
+        fld ST(0)             ; n            n
+        fadd                  ; 2n           ~~~
+        fld1                  ; 1            2n
+        fadd                  ; 2n+1         ~~~
+        fld negOneToSomePower ; (-1)^n-1     2n+1
+        fchs                  ; (-1)^n       2n+1
+        fst negOneToSomePower ; (-1)^n       2n+1
+        fdirv                 ;(-1)^n/(2n+1) ~~~   ST(0) now contains the next term of the series
+        fld calculatedPi      ; sum          term
+        fadd                  ; newSum       ~~~
+        fstp calculatedPi     ; ~~~          ~~~
+        mov ECX, currentTerm
+        inc ECX
+        mov currentTerm, ECX
+        jmp sigmaTop
     sigmaEnd:
-        ; Instruction     | ST(0) | ST(1)
-                          ; ~~~     ~~~
-        fld calculatedPi  ; pi/4    ~~~
-        fld four          ; 4       pi/4
-        fmul              ; pi      ~~~
-        fstp calculatedPi
-
-    fldpi ; push the "official" PI
-    fld calculatedPi
-    fsub
-    fstp difference ; see how far I'm off by
+        ; Instruction         | ST(0)      | ST(1)
+        fld calculatedPi      ; pi/4         ~~~
+        fld four              ; 4            pi/4
+        fmul                  ; pi           ~~~
+        fstp calculatedPi     ; ~~~          ~~~
 
     mov EAX, 0
     ret
