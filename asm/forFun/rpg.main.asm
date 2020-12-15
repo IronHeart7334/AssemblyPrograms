@@ -13,29 +13,8 @@
 
 ; named memory allocation and initialization
 .DATA
-; Idea: this is how to do structs
-person1Id   BYTE   0d    ; this is just so I have something to target with the lea instruction
-person1Off  BYTE   5d    ; offense stat
-person1Hp   BYTE  20d    ; must treat this as signed, as damage may reduce you to negative HP
-person1Type BYTE  "FGHT" ; four-character type "fighter" in this case. This will make dereferencing offsets interesting
-longNumber1 DWORD 71h    ; let's see if I can access this
-
-person2Id   BYTE   0d
-person2Off  BYTE   7d
-person2Hp   BYTE  15d
-person2Type BYTE  "NULL"
-longNumber2 DWORD 99h
-
-; Better struct idea
 person1 DWORD 2 dup(0) ; Allocate 64 bits per person
-person2 DWORD 2 dup(0)
-
-; these will need to change if the order of properties above changes
-idOffset    DWORD  0d ; ID is 0 bytes away from the start of the struct
-offOffset   DWORD  1d ; ID takes 1 byte, so offense occupies the next one
-hpOffset    DWORD  2d
-typeOffset  DWORD  3d
-longOffset  DWORD  7d ; type takes up 4 bytes, so this is 4 + its offset
+person2 DWORD 2 dup(0) ; may later change this to a dynamic memory pool a-la malloc
 
 ; names of procedures defined in other *.asm files in the project
 
@@ -44,13 +23,41 @@ longOffset  DWORD  7d ; type takes up 4 bytes, so this is 4 + its offset
 main	PROC
 
 	; set up the fight
-	; AL will hold person1's HP
-	lea EBX, person1Id
-	mov ECX, hpOffset
-	mov AL, BYTE PTR [EBX + 1*ECX] ; will this work?
-	; AH will hold person2's HP
-	lea EBX, person2Id
-	mov AH, BYTE PTR [EBX + 1*ECX] ; looks kind of like "this->getHp", except "this" is EBX. Hmm...
+
+	; Push arguments
+	mov EBX, 5d      ; person 1 off
+	push EBX
+	mov EBX, 20d     ; person 1 HP
+	push EBX
+	lea EBX, person1 ; load the space allocated for person 1
+	push EBX
+
+	; Invoke "constructor"
+	call newPerson ; data has been loaded into person1
+
+	; Pop arguments
+	pop EBX
+	pop EBX
+	pop EBX
+
+	; Person1 is now done, on to person 2
+	; push actual arguments
+	mov EBX, 7d
+	push EBX
+	mov EBX, 15d
+	push EBX
+	lea EBX, person2
+	push EBX
+
+	call newPerson
+
+	pop EBX
+	pop EBX
+	pop EBX
+
+	; By now, both people should be fully loaded
+
+
 
 	; fight until someone's out of the game
 	checkIfFightOver:
@@ -122,7 +129,7 @@ newPerson PROC
 
 	; Now for the actual procedure
 	mov EBX, DWORD PTR [EBP + 4*2]                  ; EBX will hold "this" pointer
-	mov BYTE PTR [EBX], DWORD PTR [EBP + 4*3]       ; this->hp = hp
+	mov BYTE PTR [EBX + 1*0], DWORD PTR [EBP + 4*3] ; this->hp = hp
 	mov BYTE PTR [EBX + 1*1], DWORD PTR [EBP + 4*4] ; this->off = off
 
 	; restore registers
@@ -143,19 +150,23 @@ getHp PROC
 
 	; save registers
 	pushfd
+	push EBX
 
 	; Stack:
 	; [garbage]
 	; [this   ]
+	; [return ]
 	; [old EBP] <-- EBP
-	; [EFLAGS ] <-- ESP
+	; [EFLAGS ]
+	; [EBX    ] <-- ESP
 
 	; actual procedure
-	mov EAX, DWORD PTR [EBP + 4*1] ; EAX now contains this pointer
-	mov EAX, DWORD PTR [EAX]       ; EAX now contains the actual "object"
+	mov EBX, DWORD PTR [EBP + 4*2] ; EBX now contains this pointer
+	mov EAX, DWORD PTR [EBX]       ; EAX now contains the actual "object"
 	shr EAX, 24d                   ; first 8 bits are HP, so move them to AL, setting others to 0
 
 	; restore registers
+	pop EBX
 	popfd
 
 	; take down stack frame
@@ -163,5 +174,47 @@ getHp PROC
 
 	ret
 getHp ENDP
+
+; int getOff(Person* this);
+getOff PROC
+	; set up stack frame
+	push EBP
+	mov EBP, ESP
+
+	; save registers
+	pushfd
+	push EBX
+
+	; Stack:
+	; [garbage]
+	; [this   ]
+	; [return ]
+	; [old EBP] <--- EBP
+	; [EFLAGS ]
+	; [EBX    ] <--- ESP
+
+	; actual procedure
+	mov EBX, DWORD PTR [EBP + 4*2] ; EBX now contains "this" pointer
+	mov EAX, DWORD PTR [EBX]       ; EAX now contains the first 32 bits of the object
+	                               ; [~~~~ ~~~~ XXXX XXXX ~~~~ ~~~~ ~~~~ ~~~~] Bits I want are X's
+	shl EAX, 8d                    ; [XXXX XXXX ~~~~ ~~~~ ~~~~ ~~~~ 0000 0000]
+	shr EAX, 24d                   ; [0000 0000 0000 0000 0000 0000 XXXX XXXX]
+	; done
+
+	; restore registers
+	pop EBX
+	popfd
+
+	; take down stack frame
+	pop EBP
+
+	ret
+getOff ENDP
+
+; void fight(Person* p1, Person* p2);
+fight PROC
+	
+	ret
+fight ENDP
 
 END
