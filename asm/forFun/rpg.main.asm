@@ -87,6 +87,7 @@ newPerson PROC
 	; save registers
 	pushfd
 	push EBX
+	push EAX
 
 	; Stack:
 	; [garbage]
@@ -96,14 +97,18 @@ newPerson PROC
 	; [return ]
 	; [old EBP] <-- EBP
 	; [EFLAGS ]
-	; [EBX    ] <-- ESP
+	; [EBX    ]
+	; [EAX    ] <-- ESP
 
 	; Now for the actual procedure
 	mov EBX, DWORD PTR [EBP + 4*2]                  ; EBX will hold "this" pointer
-	mov BYTE PTR [EBX + 1*0], DWORD PTR [EBP + 4*3] ; this->hp = hp
-	mov BYTE PTR [EBX + 1*1], DWORD PTR [EBP + 4*4] ; this->off = off
+	mov EAX, DWORD PTR [EBP + 4*3]
+	mov BYTE PTR [EBX + 1*0], AL ; this->hp = hp
+	mov EAX, DWORD PTR [EBP + 4*4]
+	mov BYTE PTR [EBX + 1*1], AL ; this->off = off
 
 	; restore registers
+	pop EAX
 	pop EBX
 	popfd
 
@@ -133,8 +138,8 @@ getHp PROC
 
 	; actual procedure
 	mov EBX, DWORD PTR [EBP + 4*2] ; EBX now contains this pointer
-	mov EAX, DWORD PTR [EBX]       ; EAX now contains the actual "object"
-	shr EAX, 24d                   ; first 8 bits are HP, so move them to AL, setting others to 0
+	mov EAX, 0
+	mov AL, BYTE PTR [EBX + 1*0]   ; first 8 bits are HP
 
 	; restore registers
 	pop EBX
@@ -166,11 +171,8 @@ getOff PROC
 
 	; actual procedure
 	mov EBX, DWORD PTR [EBP + 4*2] ; EBX now contains "this" pointer
-	mov EAX, DWORD PTR [EBX]       ; EAX now contains the first 32 bits of the object
-	                               ; [~~~~ ~~~~ XXXX XXXX ~~~~ ~~~~ ~~~~ ~~~~] Bits I want are X's
-	shl EAX, 8d                    ; [XXXX XXXX ~~~~ ~~~~ ~~~~ ~~~~ 0000 0000]
-	shr EAX, 24d                   ; [0000 0000 0000 0000 0000 0000 XXXX XXXX]
-	; done
+	mov EAX, 0
+	mov AL, BYTE PTR [EBX + 1*1]   ; second byte is offense
 
 	; restore registers
 	pop EBX
@@ -245,12 +247,14 @@ fight PROC
 	; [old EFLAGS ]
 	; [old EBX    ]
 	; [old EAX    ]
-	; [taget      ]
+	; [target     ]
 	; [attacker   ] <--- ESP
 
 	; actual procedure
-	mov DWORD PTR [EBP - 4*4], DWORD PTR [EBP + 4*3] ; start with person2 in target
-	mov DWORD PTR [EBP - 4*5], DWORD PTR [EBP + 4*2] ; and person1 as the attacker
+	push DWORD PTR [EBP + 4*3]
+	pop DWORD PTR [EBP - 4*4] ; start with person2 in target
+	push DWORD PTR [EBP + 4*2]
+	pop DWORD PTR [EBP - 4*5] ; and person1 as the attacker
 	checkIfAttackerIsKoed:
 		push DWORD PTR [EBP - 4*5]
 		call getHp
@@ -276,7 +280,8 @@ fight PROC
 
 		; lastly, swap attacker and target
 		push DWORD PTR [EBP - 4*4]
-		mov DWORD PTR [EBP - 4*4], DWORD PTR [EBP - 4*5]
+		push DWORD PTR [EBP - 4*5]
+		pop DWORD PTR [EBP - 4*4]
 		pop DWORD PTR [EBP - 4*5]
 
 		jmp checkIfAttackerIsKoed
