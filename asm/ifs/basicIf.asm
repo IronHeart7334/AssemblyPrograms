@@ -25,17 +25,15 @@ value WORD -132d
 ; procedure code
 .CODE
 main	PROC
-
 	mov AX, 64d
 
     cmp AX, value
-    jg ifBlock
+    jg ifBlock ; interperates AX and value as signed values, and jumps if AX > value
     jmp endIfBlock ; skips over this line if AX > value
     ifBlock:
         mov AX, 0 ; the body of the original if
-    	jmp endIfBlock
-    endIfBlock:
-    ; do nothing
+    endIfBlock: ; falls through to here after if block
+    	; do nothing
 
 	mov EAX, 0
 	ret
