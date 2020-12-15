@@ -57,42 +57,13 @@ main	PROC
 
 	; By now, both people should be fully loaded
 
-
-
-	; fight until someone's out of the game
-	checkIfFightOver:
-		cmp AL, 0d
-		jbe fightOver
-		cmp AH, 0d
-		jbe fightOver
-		jmp nextRound
-	nextRound:
-		; player 1's turn
-		; DL will hold offense values
-		lea EBX, person1Id
-		mov ECX, offOffset
-		mov DL, BYTE PTR [EBX + 1*ECX]
-		sub AH, DL
-		; simultaneous attack from person 2
-		lea EBX, person2Id
-		mov DL, BYTE PTR [EBX + 1*ECX]
-		sub AL, DL
-		jmp checkIfFightOver
-	fightOver:
-		; I don't know what will happen here.
-		; I'll just test a few things...
-		lea EBX, person1Id
-		mov ECX, idOffset
-		mov AL, BYTE PTR [EBX + 1*ECX]     ; can I get the ID?
-		mov ECX, offOffset
-		mov AL, BYTE PTR [EBX + 1*ECX]    ; ...offense?
-		mov ECX, hpOffset
-		mov AL, BYTE PTR [EBX + 1*ECX]     ; HP
-		mov ECX, typeOffset
-		mov EAX, DWORD PTR [EBX + 1*ECX] ; what happens if I try to read 4 consecutive bytes as a DWORD?
-		; It's backwards??? Why thought? Is this just a Visual Studio formatting thing?
-		mov ECX, longOffset
-		mov EAX, DWORD PTR [EBX + 1*ECX] ; this is a different size than the others... will that cause problems?
+	lea EBX, person2
+	push EBX
+	lea EBX, person1
+	push EBX
+	call fight
+	pop EBX
+	pop EBX
 
 	mov EAX, 0
 	ret
@@ -142,7 +113,7 @@ newPerson PROC
 	ret
 newPerson ENDP
 
-; int getHp(Person* this)
+; int getHp(Person* this);
 getHp PROC
 	; set up stack frame
 	push EBP
@@ -211,9 +182,119 @@ getOff PROC
 	ret
 getOff ENDP
 
+; void takeDmg(Person* this, int amount);
+takeDmg PROC
+	push EBP
+	mov EBP, ESP
+
+	pushfd
+	push EDX
+	push EBX
+
+	; Stack:
+	; [garbage]
+	; [amount ]
+	; [this   ]
+	; [return ]
+	; [old EBP] <--- EBP
+	; [EFLAGS ]
+	; [EDX    ]
+	; [EBX    ] <--- ESP
+	mov EDX, DWORD PTR [EBP + 4*3] ; EDX holds the damage
+	push DWORD PTR [EBP + 4*2]     ; push "this"
+	call getHp                     ; EAX contains the HP
+	pop DWORD PTR [EBP + 4*2]
+	cmp EAX, EDX
+	jae doTakeDmg
+	; else, need to prevent overflow
+	mov EDX, EAX ; max out at the person's HP
+	doTakeDmg:
+		mov EBX, DWORD PTR [EBP + 4*2] ; EBX holds "this"
+		sub BYTE PTR [EBX + 1*0], DL   ; reduce this' HP by DL
+
+	pop EBX
+	pop EDX
+	popfd
+
+	pop EBP
+
+	ret
+takeDmg ENDP
+
 ; void fight(Person* p1, Person* p2);
 fight PROC
-	
+	; set up stack frame
+	push EBP
+	mov EBP, ESP
+
+	; save registers
+	pushfd
+	push EBX
+	push EAX
+
+	; allocate storeage
+	push EBX ; target
+	push EBX ; attacker
+
+	; Stack:
+	; [garbage    ]
+	; [person2 ptr]
+	; [person1 ptr]
+	; [return addr]
+	; [old EBP    ] <--- EBP
+	; [old EFLAGS ]
+	; [old EBX    ]
+	; [old EAX    ]
+	; [taget      ]
+	; [attacker   ] <--- ESP
+
+	; actual procedure
+	mov DWORD PTR [EBP - 4*4], DWORD PTR [EBP + 4*3] ; start with person2 in target
+	mov DWORD PTR [EBP - 4*5], DWORD PTR [EBP + 4*2] ; and person1 as the attacker
+	checkIfAttackerIsKoed:
+		push DWORD PTR [EBP - 4*5]
+		call getHp
+		pop DWORD PTR [EBP - 4*5]
+		cmp EAX, 0
+		je koOccurred
+	checkIfTargetIsKoed:
+		push DWORD PTR [EBP - 4*4]
+		call getHp
+		pop DWORD PTR [EBP - 4*4]
+		cmp EAX, 0
+		je koOccurred
+	bothPeopleAreStillUp:
+		push DWORD PTR [EBP - 4*5]
+		call getOff
+		pop DWORD PTR [EBP - 4*5]
+		; EAX contains the damage
+		push EAX
+		push DWORD PTR [EBP - 4*4]
+		call takeDmg
+		pop DWORD PTR [EBP - 4*4]
+		pop EAX
+
+		; lastly, swap attacker and target
+		push DWORD PTR [EBP - 4*4]
+		mov DWORD PTR [EBP - 4*4], DWORD PTR [EBP - 4*5]
+		pop DWORD PTR [EBP - 4*5]
+
+		jmp checkIfAttackerIsKoed
+	koOccurred:
+		; fight is over
+
+	; clear allocated storage
+	pop EBX
+	pop EBX
+
+	; restore registers
+	pop EAX
+	pop EBX
+	popfd
+
+	; take down stack frame
+	pop EBP
+
 	ret
 fight ENDP
 
